@@ -192,10 +192,10 @@
         <h2 class="font-semibold text-lg mb-2">Printing Parameters</h2>
         <div class="space-y-2 text-sm">
           <script>
-            const createParam = (label, id, value, unit) => `
+            const createParam = (label, id, value, unit, min, max, step) => `
               <div class="flex justify-between items-center">
                 <label for="${id}" class="text-gray-400">${label} (${unit}):</label>
-                <input type="text" id="${id}" value="${value}"
+                <input type="number" id="${id}" value="${value}" min="${min}" max="${max}" step="${step}"
                        onchange="updateParameters();"
                        oninput="updateParameters();"
                        onkeydown="validatePrintParamKey(event)"
@@ -894,42 +894,57 @@
     // ==========================
     // Viewer init / UI
     // ==========================
+    const PRINT_PARAM_LIMITS = {
+      layerHeightInput: { min: 0.06, max: 0.3, step: 0.01 },
+      extrusionTempInput: { min: 185, max: 230, step: 1 },
+      wallSpeedInput: { min: 150, max: 250, step: 1 },
+      infillDensityInput: { min: 0, max: 100, step: 1 },
+      wallThicknessInput: { min: 0.4, max: 2, step: 0.01 },
+      bedTempInput: { min: 25, max: 70, step: 1 },
+      fanSpeedInput: { min: 0, max: 100, step: 1 }
+    };
+
     function injectPrintParams() {
       const params = [
         { label: "Layer Height", id: "layerHeightInput", value: "0.12", unit: "mm" },
-        { label: "Extrusion Temp", id: "extrusionTempInput", value: "190", unit: "°C" },
+        { label: "Extrusion Temp", id: "extrusionTempInput", value: "190", unit: "C" },
         { label: "Wall Speed", id: "wallSpeedInput", value: "200", unit: "mm/s" },
         { label: "Infill Density", id: "infillDensityInput", value: "15", unit: "%" },
         { label: "Wall Thickness", id: "wallThicknessInput", value: "0.42", unit: "mm" },
-        { label: "Bed Temp", id: "bedTempInput", value: "60", unit: "°C" },
+        { label: "Bed Temp", id: "bedTempInput", value: "60", unit: "C" },
         { label: "Fan Speed", id: "fanSpeedInput", value: "80", unit: "%" }
       ];
       const c = document.getElementById("print-params-container");
-      c.innerHTML = params.map(p => createParam(p.label, p.id, p.value, p.unit)).join("");
+      c.innerHTML = params.map(p => {
+        const limits = PRINT_PARAM_LIMITS[p.id];
+        return createParam(p.label, p.id, p.value, p.unit, limits.min, limits.max, limits.step);
+      }).join("");
+    }
+
+    function clampParamValue(id) {
+      const input = document.getElementById(id);
+      const limits = PRINT_PARAM_LIMITS[id];
+      const min = limits.min;
+      const max = limits.max;
+      let value = safeParseFloat(input.value);
+
+      if (!Number.isFinite(value)) value = min;
+      if (value < min) value = min;
+      if (value > max) value = max;
+
+      const normalized = String(value);
+      if (input.value != normalized) input.value = normalized;
+      return value;
     }
 
     window.updateParameters = function () {
-      layerHeight = document.getElementById("layerHeightInput").value;
-      extrusionTemp = document.getElementById("extrusionTempInput").value;
-      wallSpeed = document.getElementById("wallSpeedInput").value;
-      const infillInput = document.getElementById("infillDensityInput");
-      infillDensity = infillInput.value;
-      wallThickness = document.getElementById("wallThicknessInput").value;
-      bedTemp = document.getElementById("bedTempInput").value;
-      const fanInput = document.getElementById("fanSpeedInput");
-      fanSpeed = fanInput.value;
-
-      const infillValue = safeParseFloat(infillDensity);
-      if (Number.isFinite(infillValue) && infillValue > 100) {
-        infillDensity = "100";
-        infillInput.value = "100";
-      }
-
-      const fanValue = safeParseFloat(fanSpeed);
-      if (Number.isFinite(fanValue) && fanValue > 100) {
-        fanSpeed = "100";
-        fanInput.value = "100";
-      }
+      layerHeight = clampParamValue("layerHeightInput");
+      extrusionTemp = clampParamValue("extrusionTempInput");
+      wallSpeed = clampParamValue("wallSpeedInput");
+      infillDensity = clampParamValue("infillDensityInput");
+      wallThickness = clampParamValue("wallThicknessInput");
+      bedTemp = clampParamValue("bedTempInput");
+      fanSpeed = clampParamValue("fanSpeedInput");
 
       // If roughness map is enabled, recompute map (params changed)
       if (colorMode === "roughness" && mesh) scheduleRoughnessMapCompute();
