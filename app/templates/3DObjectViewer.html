@@ -196,8 +196,9 @@
               <div class="flex justify-between items-center">
                 <label for="${id}" class="text-gray-400">${label} (${unit}):</label>
                 <input type="number" id="${id}" value="${value}" min="${min}" max="${max}" step="${step}"
-                       onchange="updateParameters();"
-                       oninput="updateParameters();"
+                       onchange="updateParameters(true);"
+                       onblur="updateParameters(true);"
+                       oninput="updateParameters(false);"
                        onkeydown="validatePrintParamKey(event)"
                        class="w-20 bg-gray-800 border border-gray-600 rounded-md p-1 text-right font-mono text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
               </div>`;
@@ -896,12 +897,12 @@
     // ==========================
     const PRINT_PARAM_LIMITS = {
       layerHeightInput: { min: 0.06, max: 0.3, step: 0.01 },
-      extrusionTempInput: { min: 185, max: 230, step: 1 },
-      wallSpeedInput: { min: 150, max: 250, step: 1 },
-      infillDensityInput: { min: 0, max: 100, step: 1 },
+      extrusionTempInput: { min: 185, max: 230, step: 0.01 },
+      wallSpeedInput: { min: 150, max: 250, step: 0.01 },
+      infillDensityInput: { min: 0, max: 100, step: 0.01 },
       wallThicknessInput: { min: 0.4, max: 2, step: 0.01 },
-      bedTempInput: { min: 25, max: 70, step: 1 },
-      fanSpeedInput: { min: 0, max: 100, step: 1 }
+      bedTempInput: { min: 25, max: 70, step: 0.01 },
+      fanSpeedInput: { min: 0, max: 100, step: 0.01 }
     };
 
     function injectPrintParams() {
@@ -937,14 +938,24 @@
       return value;
     }
 
-    window.updateParameters = function () {
-      layerHeight = clampParamValue("layerHeightInput");
-      extrusionTemp = clampParamValue("extrusionTempInput");
-      wallSpeed = clampParamValue("wallSpeedInput");
-      infillDensity = clampParamValue("infillDensityInput");
-      wallThickness = clampParamValue("wallThicknessInput");
-      bedTemp = clampParamValue("bedTempInput");
-      fanSpeed = clampParamValue("fanSpeedInput");
+    window.updateParameters = function (shouldClamp = true) {
+      if (shouldClamp) {
+        layerHeight = clampParamValue("layerHeightInput");
+        extrusionTemp = clampParamValue("extrusionTempInput");
+        wallSpeed = clampParamValue("wallSpeedInput");
+        infillDensity = clampParamValue("infillDensityInput");
+        wallThickness = clampParamValue("wallThicknessInput");
+        bedTemp = clampParamValue("bedTempInput");
+        fanSpeed = clampParamValue("fanSpeedInput");
+      } else {
+        layerHeight = document.getElementById("layerHeightInput").value;
+        extrusionTemp = document.getElementById("extrusionTempInput").value;
+        wallSpeed = document.getElementById("wallSpeedInput").value;
+        infillDensity = document.getElementById("infillDensityInput").value;
+        wallThickness = document.getElementById("wallThicknessInput").value;
+        bedTemp = document.getElementById("bedTempInput").value;
+        fanSpeed = document.getElementById("fanSpeedInput").value;
+      }
 
       // If roughness map is enabled, recompute map (params changed)
       if (colorMode === "roughness" && mesh) scheduleRoughnessMapCompute();
