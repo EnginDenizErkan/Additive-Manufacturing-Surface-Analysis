@@ -9,13 +9,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
     <style>
+        html, body {
+            height: 100%;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            overflow: hidden;
-            /* --- CHANGE: Set default text to dark --- */
+            overflow-y: auto;     /* ✅ allow vertical scroll */
+            overflow-x: hidden;   /* ✅ prevent horizontal scroll */
+            -webkit-overflow-scrolling: touch; /* ✅ smoother scroll on iOS */
             color: #1f2937;
-            /* Using Tailwind's text-gray-800 */
         }
 
         #landing-container {
