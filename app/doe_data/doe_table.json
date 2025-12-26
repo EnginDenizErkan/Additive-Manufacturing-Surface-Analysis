@@ -1,0 +1,872 @@
+[
+  {
+    "ID": "Object-1",
+    "Layer Height (mm)": 0.12,
+    "Extrusion Temp (°C)": 190,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-2",
+    "Layer Height (mm)": 0.12,
+    "Extrusion Temp (°C)": 210,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-3",
+    "Layer Height (mm)": 0.28,
+    "Extrusion Temp (°C)": 190,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-4",
+    "Layer Height (mm)": 0.28,
+    "Extrusion Temp (°C)": 210,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-5",
+    "Layer Height (mm)": 0.12,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 150,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-6",
+    "Layer Height (mm)": 0.12,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 250,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-7",
+    "Layer Height (mm)": 0.28,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 150,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-8",
+    "Layer Height (mm)": 0.28,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 250,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-9",
+    "Layer Height (mm)": 0.12,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 5,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-10",
+    "Layer Height (mm)": 0.12,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 25,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-11",
+    "Layer Height (mm)": 0.28,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 5,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-12",
+    "Layer Height (mm)": 0.28,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 25,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-13",
+    "Layer Height (mm)": 0.12,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.36,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-14",
+    "Layer Height (mm)": 0.12,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.48,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-15",
+    "Layer Height (mm)": 0.28,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.36,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-16",
+    "Layer Height (mm)": 0.28,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.48,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-17",
+    "Layer Height (mm)": 0.12,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 55,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-18",
+    "Layer Height (mm)": 0.12,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 65,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-19",
+    "Layer Height (mm)": 0.28,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 55,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-20",
+    "Layer Height (mm)": 0.28,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 65,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-21",
+    "Layer Height (mm)": 0.12,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 60
+  },
+  {
+    "ID": "Object-22",
+    "Layer Height (mm)": 0.12,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 100
+  },
+  {
+    "ID": "Object-23",
+    "Layer Height (mm)": 0.28,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 60
+  },
+  {
+    "ID": "Object-24",
+    "Layer Height (mm)": 0.28,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 100
+  },
+  {
+    "ID": "Object-25",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 190,
+    "Outer Wall Speed (mm/s)": 150,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-26",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 190,
+    "Outer Wall Speed (mm/s)": 250,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-27",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 210,
+    "Outer Wall Speed (mm/s)": 150,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-28",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 210,
+    "Outer Wall Speed (mm/s)": 250,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-29",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 190,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 5,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-30",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 190,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 25,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-31",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 210,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 5,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-32",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 210,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 25,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-33",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 190,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.36,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-34",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 190,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.48,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-35",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 210,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.36,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-36",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 210,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.48,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-37",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 190,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 55,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-38",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 190,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 65,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-39",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 210,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 55,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-40",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 210,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 65,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-41",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 190,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 60
+  },
+  {
+    "ID": "Object-42",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 190,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 100
+  },
+  {
+    "ID": "Object-43",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 210,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 60
+  },
+  {
+    "ID": "Object-44",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 210,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 100
+  },
+  {
+    "ID": "Object-45",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 150,
+    "Infill Density (%)": 5,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-46",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 150,
+    "Infill Density (%)": 25,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-47",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 250,
+    "Infill Density (%)": 5,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-48",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 250,
+    "Infill Density (%)": 25,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-49",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 150,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.36,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-50",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 150,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.48,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-51",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 250,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.36,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-52",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 250,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.48,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-53",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 150,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 55,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-54",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 150,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 65,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-55",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 250,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 55,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-56",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 250,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 65,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-57",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 150,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 60
+  },
+  {
+    "ID": "Object-58",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 150,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 100
+  },
+  {
+    "ID": "Object-59",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 250,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 60
+  },
+  {
+    "ID": "Object-60",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 250,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 100
+  },
+  {
+    "ID": "Object-61",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 5,
+    "Wall Thickness (mm)": 0.36,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-62",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 5,
+    "Wall Thickness (mm)": 0.48,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-63",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 25,
+    "Wall Thickness (mm)": 0.36,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-64",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 25,
+    "Wall Thickness (mm)": 0.48,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-65",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 5,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 55,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-66",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 5,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 65,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-67",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 25,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 55,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-68",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 25,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 65,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-69",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 5,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 60
+  },
+  {
+    "ID": "Object-70",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 5,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 100
+  },
+  {
+    "ID": "Object-71",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 25,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 60
+  },
+  {
+    "ID": "Object-72",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 25,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 100
+  },
+  {
+    "ID": "Object-73",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.36,
+    "Bed Temp (°C)": 55,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-74",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.36,
+    "Bed Temp (°C)": 65,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-75",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.48,
+    "Bed Temp (°C)": 55,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-76",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.48,
+    "Bed Temp (°C)": 65,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-77",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.36,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 60
+  },
+  {
+    "ID": "Object-78",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.36,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 100
+  },
+  {
+    "ID": "Object-79",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.48,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 60
+  },
+  {
+    "ID": "Object-80",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.48,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 100
+  },
+  {
+    "ID": "Object-81",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 55,
+    "Fan Speed (%)": 60
+  },
+  {
+    "ID": "Object-82",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 55,
+    "Fan Speed (%)": 100
+  },
+  {
+    "ID": "Object-83",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 65,
+    "Fan Speed (%)": 60
+  },
+  {
+    "ID": "Object-84",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 65,
+    "Fan Speed (%)": 100
+  },
+  {
+    "ID": "Object-85",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-86",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  },
+  {
+    "ID": "Object-87",
+    "Layer Height (mm)": 0.2,
+    "Extrusion Temp (°C)": 200,
+    "Outer Wall Speed (mm/s)": 200,
+    "Infill Density (%)": 15,
+    "Wall Thickness (mm)": 0.42,
+    "Bed Temp (°C)": 60,
+    "Fan Speed (%)": 80
+  }
+]

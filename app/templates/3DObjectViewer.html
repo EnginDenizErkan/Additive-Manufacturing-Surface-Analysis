@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>3D Object Viewer</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- TensorFlow.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: { sans: ["Inter", "sans-serif"] },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      font-family: "Inter", sans-serif;
+    }
+
+    #container {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: grab;
+    }
+
+    #container:active {
+      cursor: grabbing;
+    }
+
+    #sidebar::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #sidebar::-webkit-scrollbar-track {
+      background: #2d3748;
+    }
+
+    #sidebar::-webkit-scrollbar-thumb {
+      background: #4a5568;
+      border-radius: 4px;
+    }
+
+    #sidebar::-webkit-scrollbar-thumb:hover {
+      background: #718096;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      background: #4a5568;
+      border-radius: 4px;
+      outline: none;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    input[type="range"]:hover {
+      opacity: 1;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: #3b82f6;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: #3b82f6;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type="number"] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+
+    .lds-spinner {
+      color: white;
+      display: inline-block;
+      position: relative;
+      width: 80px;
+      height: 80px;
+    }
+
+    .lds-spinner div {
+      transform-origin: 40px 40px;
+      animation: lds-spinner 1.2s linear infinite;
+    }
+
+    .lds-spinner div:after {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 3px;
+      left: 37px;
+      width: 6px;
+      height: 18px;
+      border-radius: 20%;
+      background: #fff;
+    }
+
+    .lds-spinner div:nth-child(1) { transform: rotate(0deg); animation-delay: -1.1s; }
+    .lds-spinner div:nth-child(2) { transform: rotate(30deg); animation-delay: -1s; }
+    .lds-spinner div:nth-child(3) { transform: rotate(60deg); animation-delay: -0.9s; }
+    .lds-spinner div:nth-child(4) { transform: rotate(90deg); animation-delay: -0.8s; }
+    .lds-spinner div:nth-child(5) { transform: rotate(120deg); animation-delay: -0.7s; }
+    .lds-spinner div:nth-child(6) { transform: rotate(150deg); animation-delay: -0.6s; }
+    .lds-spinner div:nth-child(7) { transform: rotate(180deg); animation-delay: -0.5s; }
+    .lds-spinner div:nth-child(8) { transform: rotate(210deg); animation-delay: -0.4s; }
+    .lds-spinner div:nth-child(9) { transform: rotate(240deg); animation-delay: -0.3s; }
+    .lds-spinner div:nth-child(10) { transform: rotate(270deg); animation-delay: -0.2s; }
+    .lds-spinner div:nth-child(11) { transform: rotate(300deg); animation-delay: -0.1s; }
+    .lds-spinner div:nth-child(12) { transform: rotate(330deg); animation-delay: 0s; }
+
+    @keyframes lds-spinner {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+  </style>
+</head>
+
+<body class="bg-gray-900 text-gray-200 font-sans">
+  <div class="flex h-screen w-screen">
+    <!-- Sidebar -->
+    <div id="sidebar" class="w-80 h-full bg-gray-800 shadow-xl p-4 overflow-y-auto space-y-4 flex flex-col">
+      <h1 class="text-2xl font-bold text-white text-center pb-2 border-b border-gray-600">3D Viewer</h1>
+
+      <!-- File Input Panel -->
+      <div class="bg-gray-700 rounded-lg p-3">
+        <h2 class="font-semibold text-lg mb-2">Load Model</h2>
+        <label for="modelOBJ"
+          class="w-full inline-block text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md cursor-pointer transition-colors">
+          Choose File
+        </label>
+        <input type="file" id="modelOBJ" class="hidden" onChange="runViewer();">
+        <span id="fileName" class="text-xs text-gray-400 mt-2 block truncate">No file selected.</span>
+      </div>
+
+      <!-- Object Info -->
+      <div class="bg-gray-700 rounded-lg p-3">
+        <h2 class="font-semibold text-lg mb-2">Object Info</h2>
+        <div class="text-sm space-y-1">
+          <div>
+            <span class="font-medium text-gray-400" id="volumeLabel">Volume</span>:
+            <span id="volumeValue" class="font-mono text-white">---</span>
+            <span class="text-gray-400">cm³</span>
+          </div>
+          <div>
+            <span class="font-medium text-gray-400" id="sizeLabel">Size</span>:
+            <span id="widthValue" class="font-mono text-white">---</span> x
+            <span id="heightValue" class="font-mono text-white">---</span> x
+            <span id="depthValue" class="font-mono text-white">---</span>
+            <span class="text-gray-400">cm</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Printing Parameters -->
+      <div class="bg-gray-700 rounded-lg p-3">
+        <h2 class="font-semibold text-lg mb-2">Printing Parameters</h2>
+        <div class="space-y-2 text-sm">
+          <script>
+            const createParam = (label, id, value, unit) => `
+              <div class="flex justify-between items-center">
+                <label for="${id}" class="text-gray-400">${label} (${unit}):</label>
+                <input type="text" id="${id}" value="${value}"
+                       onchange="updateParameters();"
+                       oninput="updateParameters();"
+                       onkeydown="validatePrintParamKey(event)"
+                       class="w-20 bg-gray-800 border border-gray-600 rounded-md p-1 text-right font-mono text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>`;
+          </script>
+          <div id="print-params-container" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <!-- Nozzle Diameter -->
+      <div class="bg-gray-700 rounded-lg p-3">
+        <h2 class="font-semibold text-lg mb-2">Noozle Diameter</h2>
+        <div class="text-sm text-gray-200 font-mono">0.4 mm</div>
+      </div>
+
+      <!-- Rotation -->
+      <div class="bg-gray-700 rounded-lg p-3">
+        <h2 class="font-semibold text-lg mb-2">Object Rotation</h2>
+        <div class="space-y-3 text-sm">
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-gray-400">Rotate X: <span id="rotateXValue" class="font-mono text-white">0</span>°</label>
+              <input type="number" id="rotateXInput" min="-180" max="180" value="0" step="1"
+                     oninput="updateRotationFromInput('x', this.value)"
+                     class="w-20 bg-gray-800 border border-gray-600 rounded-md p-1 text-right font-mono text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <input type="range" id="rotateXSlider" min="-180" max="180" value="0" step="1"
+                   oninput="updateRotationFromSlider('x', this.value)">
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-gray-400">Rotate Y: <span id="rotateYValue" class="font-mono text-white">0</span>°</label>
+              <input type="number" id="rotateYInput" min="-180" max="180" value="0" step="1"
+                     oninput="updateRotationFromInput('y', this.value)"
+                     class="w-20 bg-gray-800 border border-gray-600 rounded-md p-1 text-right font-mono text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <input type="range" id="rotateYSlider" min="-180" max="180" value="0" step="1"
+                   oninput="updateRotationFromSlider('y', this.value)">
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-gray-400">Rotate Z: <span id="rotateZValue" class="font-mono text-white">0</span>°</label>
+              <input type="number" id="rotateZInput" min="-180" max="180" value="0" step="1"
+                     oninput="updateRotationFromInput('z', this.value)"
+                     class="w-20 bg-gray-800 border border-gray-600 rounded-md p-1 text-right font-mono text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <input type="range" id="rotateZSlider" min="-180" max="180" value="0" step="1"
+                   oninput="updateRotationFromSlider('z', this.value)">
+          </div>
+        </div>
+
+        <hr class="border-gray-600 my-3">
+        <button onclick="resetRotation()"
+                class="w-full bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-md transition-colors">
+          Reset Rotation
+        </button>
+      </div>
+
+      <!-- Mesh Visibility -->
+      <div class="bg-gray-700 rounded-lg p-3">
+        <h2 class="font-semibold text-lg mb-2">Mesh Visibility</h2>
+        <div class="flex justify-between items-center">
+          <label for="wireframeToggle" class="text-gray-400">Show Meshes:</label>
+          <input type="checkbox" id="wireframeToggle" onclick="toggleWireframe(this.checked)"
+                 class="form-checkbox h-5 w-5 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500">
+        </div>
+        <hr class="border-gray-600 my-3">
+        <button onclick="resetMeshLevel()"
+                class="w-full bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-md transition-colors">
+          Reset Mesh
+        </button>
+      </div>
+
+      <!-- Inclination -->
+      <div class="bg-gray-700 rounded-lg p-3">
+        <h2 class="font-semibold text-lg mb-2">Inclination Angle</h2>
+        <div class="flex justify-between items-center">
+          <label for="inclinationToggle" class="text-gray-400">Show Inclination:</label>
+          <input type="checkbox" id="inclinationToggle"
+                 class="form-checkbox h-5 w-5 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500">
+        </div>
+
+        <div id="inclinationLegend" class="mt-2" style="display:none;">
+          <div class="w-full h-4 rounded-md"
+               style="background: linear-gradient(to right, hsl(240,100%,50%), hsl(180,100%,50%), hsl(120,100%,50%), hsl(60,100%,50%), hsl(30,100%,50%), hsl(0,100%,50%));">
+          </div>
+          <div class="flex justify-between text-xs text-gray-400">
+            <span>0°</span><span>90°</span><span>180°</span>
+          </div>
+        </div>
+
+        <div id="inclinationAngleDisplay" class="mt-2 text-sm text-gray-200" style="display:none;">
+          Angle: <span id="angleValue" class="font-mono text-white">--</span>°
+        </div>
+      </div>
+
+      <!-- Roughness Map -->
+      <div class="bg-gray-700 rounded-lg p-3">
+        <h2 class="font-semibold text-lg mb-2">Roughness Map</h2>
+
+        <div class="flex justify-between items-center">
+          <label for="roughnessToggle" class="text-gray-400">Show Roughness:</label>
+          <input type="checkbox" id="roughnessToggle"
+                 class="form-checkbox h-5 w-5 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500">
+        </div>
+
+        <div id="roughnessLegend" class="mt-2" style="display:none;">
+          <div class="w-full h-4 rounded-md"
+               style="background: linear-gradient(to right, hsl(240,100%,50%), hsl(180,100%,50%), hsl(120,100%,50%), hsl(60,100%,50%), hsl(30,100%,50%), hsl(0,100%,50%));">
+          </div>
+          <div class="flex justify-between text-xs text-gray-400 mt-1">
+            <span id="roughMinLabel" class="font-mono">--</span>
+            <span id="roughMaxLabel" class="font-mono">--</span>
+          </div>
+          <div class="text-[11px] text-gray-400 mt-1">
+            Unit: µm
+          </div>
+          <button id="recomputeRoughnessBtn"
+                  class="mt-2 w-full bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-md transition-colors text-sm">
+            Recompute Map
+          </button>
+          <div id="roughnessStatus" class="mt-2 text-[11px] text-gray-400">
+            Status: <span id="roughnessStatusText" class="font-mono text-gray-200">idle</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Main Content -->
+    <div id="main-content" class="flex-1 h-full relative">
+      <div id="container" class="w-full h-full"></div>
+
+      <!-- HUD -->
+      <div id="predictionHUD"
+           class="absolute top-4 right-4 z-40 bg-gray-900/80 border border-gray-700 rounded-xl px-4 py-3 shadow-xl backdrop-blur-sm">
+        <div class="text-xs text-gray-400">Predicted Surface Roughness</div>
+        <div class="flex items-baseline gap-2">
+          <div id="predValue" class="text-2xl font-bold text-white font-mono">--</div>
+          <div class="text-sm text-gray-300">µm</div>
+        </div>
+        <div class="mt-2 text-xs text-gray-400">
+          Surface Angle: <span id="hudAngle" class="font-mono text-white">--</span>°
+        </div>
+        <div class="mt-1 text-xs text-gray-500">
+          Model: <span id="modelStatus" class="font-mono">loading...</span>
+        </div>
+      </div>
+
+      <!-- Spinner -->
+      <div id="loading"
+           class="absolute inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50"
+           style="display:none;">
+        <div class="flex flex-col items-center">
+          <div class="lds-spinner">
+            <div></div><div></div><div></div><div></div><div></div><div></div>
+            <div></div><div></div><div></div><div></div><div></div><div></div>
+          </div>
+          <span class="text-white text-lg mt-4 font-semibold">Loading Model...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import maps -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+    import { STLLoader } from "three/addons/loaders/STLLoader.js";
+    import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
+    import { TDSLoader } from "three/addons/loaders/TDSLoader.js";
+    import { STLExporter } from "three/addons/exporters/STLExporter.js";
+
+    // --- Globals ---
+    const STRING_ERROR = "ERROR: Please check that the model is a STL, OBJ or 3DS model.";
+
+    let container, camera, scene, renderer, controls, light, mesh, gridHelper;
+    let raycaster, mouse;
+
+    let vol, height, width, depth, originalGeometry;
+
+    // Printing parameters
+    let layerHeight, extrusionTemp, wallSpeed, infillDensity, wallThickness, bedTemp, fanSpeed;
+
+    // Hover angle
+    let currentSurfaceAngleDeg = null;
+
+    // TFJS model + scaler
+    let tfModel = null;
+    let scaler = null;
+    let modelReady = false;
+
+    // Hover prediction / throttling
+    let predRAF = null;
+    let lastPredSignature = "";
+    let lastPredTime = 0;
+
+    // Color modes (mutually exclusive)
+    let colorMode = "none"; // "none" | "inclination" | "roughness"
+
+    // Roughness map cache
+    let roughnessByFace = null; // Float32Array length = nFaces
+    let roughnessMin = null;
+    let roughnessMax = null;
+    let roughnessComputeRAF = null;
+    let roughnessComputeToken = 0;
+
+    // --- UI refs ---
+    const loadingSpinner = document.getElementById("loading");
+    const sidebar = document.getElementById("sidebar");
+    const fileInput = document.getElementById("modelOBJ");
+    const fileNameEl = document.getElementById("fileName");
+
+    const volumeValueEl = document.getElementById("volumeValue");
+    const widthValueEl = document.getElementById("widthValue");
+    const heightValueEl = document.getElementById("heightValue");
+    const depthValueEl = document.getElementById("depthValue");
+
+    const rotateXSlider = document.getElementById("rotateXSlider");
+    const rotateYSlider = document.getElementById("rotateYSlider");
+    const rotateZSlider = document.getElementById("rotateZSlider");
+    const rotateXInput = document.getElementById("rotateXInput");
+    const rotateYInput = document.getElementById("rotateYInput");
+    const rotateZInput = document.getElementById("rotateZInput");
+    const rotateXValue = document.getElementById("rotateXValue");
+    const rotateYValue = document.getElementById("rotateYValue");
+    const rotateZValue = document.getElementById("rotateZValue");
+
+    const wireframeToggle = document.getElementById("wireframeToggle");
+
+    const inclinationToggle = document.getElementById("inclinationToggle");
+    const inclinationLegend = document.getElementById("inclinationLegend");
+    const inclinationAngleDisplay = document.getElementById("inclinationAngleDisplay");
+    const angleValue = document.getElementById("angleValue");
+
+    const roughnessToggle = document.getElementById("roughnessToggle");
+    const roughnessLegend = document.getElementById("roughnessLegend");
+    const roughMinLabel = document.getElementById("roughMinLabel");
+    const roughMaxLabel = document.getElementById("roughMaxLabel");
+    const recomputeRoughnessBtn = document.getElementById("recomputeRoughnessBtn");
+    const roughnessStatusText = document.getElementById("roughnessStatusText");
+
+    const predValueEl = document.getElementById("predValue");
+    const hudAngleEl = document.getElementById("hudAngle");
+    const modelStatusEl = document.getElementById("modelStatus");
+
+    function setModelStatus(text) {
+      modelStatusEl.textContent = text;
+    }
+
+    function setRoughnessStatus(text) {
+      roughnessStatusText.textContent = text;
+    }
+
+    // ==========================
+    // Robust asset path resolver
+    // ==========================
+    async function firstWorkingURL(candidates, expectJson = false) {
+      for (const url of candidates) {
+        try {
+          const res = await fetch(url, { cache: "no-cache" });
+          if (!res.ok) continue;
+
+          if (expectJson) {
+            const txt = await res.text();
+            try { JSON.parse(txt); return url; } catch { continue; }
+          } else {
+            return url;
+          }
+        } catch {
+          // ignore
+        }
+      }
+      return null;
+    }
+
+    // ==========================
+    // Preprocess & model loading
+    // ==========================
+    async function loadMLAssets() {
+      try {
+        setModelStatus("loading...");
+        predValueEl.textContent = "--";
+
+        const modelCandidates = [
+          "export_tfjs/mlp/model.json",
+          "/export_tfjs/mlp/model.json",
+          "/static/export_tfjs/mlp/model.json",
+          "../static/export_tfjs/mlp/model.json",
+          "../../static/export_tfjs/mlp/model.json"
+        ];
+
+        const scalerCandidates = [
+          "export_tfjs/preprocess/scaler_x.json",
+          "/export_tfjs/preprocess/scaler_x.json",
+          "/static/export_tfjs/preprocess/scaler_x.json",
+          "../static/export_tfjs/preprocess/scaler_x.json",
+          "../../static/export_tfjs/preprocess/scaler_x.json"
+        ];
+
+        const scalerURL = await firstWorkingURL(scalerCandidates, true);
+        const modelURL = await firstWorkingURL(modelCandidates, true);
+
+        if (!scalerURL) throw new Error("scaler_x.json not reachable.");
+        if (!modelURL) throw new Error("model.json not reachable.");
+
+        // Load scaler
+        scaler = await loadScalerJSON(scalerURL);
+
+        // Load model
+        tfModel = await window.tf.loadLayersModel(window.tf.io.browserHTTPRequest(modelURL, {
+          requestInit: { cache: "no-cache" }
+        }));
+
+        // Warm-up
+        const dummy = window.tf.zeros([1, 8]);
+        const out = tfModel.predict(dummy);
+        out.dispose();
+        dummy.dispose();
+
+        modelReady = true;
+        setModelStatus("ready");
+
+        // If roughness map was toggled before model became ready, recompute now
+        if (roughnessToggle.checked && mesh) scheduleRoughnessMapCompute();
+
+        schedulePrediction();
+      } catch (err) {
+        console.error("ML assets load failed:", err);
+        modelReady = false;
+        setModelStatus("error");
+      }
+    }
+
+    async function loadScalerJSON(url) {
+      const res = await fetch(url, { cache: "no-cache" });
+      if (!res.ok) throw new Error(`Scaler load failed: ${res.status} ${res.statusText}`);
+      const js = await res.json();
+
+      // Expected format:
+      // { minmax: { min_: [...], scale_: [...] } }
+      if (js && js.minmax && Array.isArray(js.minmax.min_) && Array.isArray(js.minmax.scale_)) {
+        const min_ = js.minmax.min_;
+        const scale_ = js.minmax.scale_;
+        return { kind: "minmax", min_, scale_ };
+      }
+
+      // Fallback
+      const mm_min = js.min ?? js.min_ ?? null;
+      const mm_scale = js.scale ?? js.scale_ ?? null;
+      if (Array.isArray(mm_min) && Array.isArray(mm_scale) && mm_min.length === mm_scale.length) {
+        return { kind: "minmax", min_: mm_min, scale_: mm_scale };
+      }
+
+      console.warn("Scaler JSON format not recognized. Proceeding without scaling.");
+      return null;
+    }
+
+    function safeParseFloat(v) {
+      const n = parseFloat(String(v).replace(",", "."));
+      return Number.isFinite(n) ? n : NaN;
+    }
+
+    function getFeatureVector(surfaceAngleDeg) {
+      // Feature order:
+      // [LayerHeight, ExtrusionTemp, WallSpeed, InfillDensity, WallThickness, BedTemp, FanSpeed, SurfaceAngle]
+      return [
+        safeParseFloat(layerHeight),
+        safeParseFloat(extrusionTemp),
+        safeParseFloat(wallSpeed),
+        safeParseFloat(infillDensity),
+        safeParseFloat(wallThickness),
+        safeParseFloat(bedTemp),
+        safeParseFloat(fanSpeed),
+        Number.isFinite(surfaceAngleDeg) ? surfaceAngleDeg : NaN
+      ];
+    }
+
+    function isValidVector(x) {
+      return x.every(v => Number.isFinite(v));
+    }
+
+    function applyMinMaxScalerLikeSklearnRow(x) {
+      // sklearn MinMaxScaler (feature_range [0,1]):
+      // x_scaled = x * scale_ + min_
+      if (!scaler || scaler.kind !== "minmax") return x;
+      const out = new Array(x.length);
+      for (let i = 0; i < x.length; i++) {
+        const sc = scaler.scale_[i] ?? 1;
+        const mn = scaler.min_[i] ?? 0;
+        out[i] = x[i] * sc + mn;
+      }
+      return out;
+    }
+
+    // ==========================
+    // Hover prediction
+    // ==========================
+    function schedulePrediction() {
+      if (predRAF) return;
+      predRAF = requestAnimationFrame(() => {
+        predRAF = null;
+        runPredictionIfNeeded();
+      });
+    }
+
+    async function runPredictionIfNeeded() {
+      const now = performance.now();
+      if (now - lastPredTime < 35) return;
+      lastPredTime = now;
+
+      if (!modelReady || !tfModel) {
+        predValueEl.textContent = "--";
+        return;
+      }
+
+      // If roughness map is enabled and we have a cached face value for current hover,
+      // prefer the cache for UI consistency and speed.
+      if (colorMode === "roughness" && mesh && roughnessByFace && lastHoveredFaceIndex !== null) {
+        const v = roughnessByFace[lastHoveredFaceIndex];
+        predValueEl.textContent = Number.isFinite(v) ? v.toFixed(3) : "--";
+        return;
+      }
+
+      const angle = currentSurfaceAngleDeg;
+      hudAngleEl.textContent = (Number.isFinite(angle) ? angle.toFixed(1) : "--");
+
+      if (!Number.isFinite(angle)) {
+        predValueEl.textContent = "--";
+        return;
+      }
+
+      const x = getFeatureVector(angle);
+      if (!isValidVector(x)) {
+        predValueEl.textContent = "--";
+        return;
+      }
+
+      const sig = x.map(v => v.toFixed(6)).join("|");
+      if (sig === lastPredSignature) return;
+      lastPredSignature = sig;
+
+      const xs = applyMinMaxScalerLikeSklearnRow(x);
+      const input = window.tf.tensor2d([xs], [1, xs.length]);
+
+      try {
+        const y = tfModel.predict(input);
+        const yVal = (await y.data())[0];
+        y.dispose();
+        input.dispose();
+        predValueEl.textContent = Number.isFinite(yVal) ? yVal.toFixed(3) : "--";
+      } catch (err) {
+        console.error("Prediction error:", err);
+        predValueEl.textContent = "--";
+        try { input.dispose(); } catch { }
+      }
+    }
+
+    // ==========================
+    // Roughness map computation
+    // ==========================
+    function scheduleRoughnessMapCompute() {
+      if (roughnessComputeRAF) return;
+      roughnessComputeRAF = requestAnimationFrame(async () => {
+        roughnessComputeRAF = null;
+        await computeAndApplyRoughnessMap();
+      });
+    }
+
+    async function computeAndApplyRoughnessMap() {
+      if (!mesh) return;
+      if (!modelReady || !tfModel) return;
+
+      // Cancel any in-flight compute by bumping token
+      const token = ++roughnessComputeToken;
+
+      setRoughnessStatus("computing...");
+      recomputeRoughnessBtn.disabled = true;
+      roughMinLabel.textContent = "--";
+      roughMaxLabel.textContent = "--";
+
+      try {
+        mesh.updateMatrixWorld(true);
+
+        const geometry = mesh.geometry;
+        const posAttr = geometry.getAttribute("position");
+        if (!posAttr) throw new Error("Mesh has no position attribute.");
+
+        const positions = posAttr.array;
+        const nFaces = Math.floor(positions.length / 9);
+        if (nFaces <= 0) throw new Error("Mesh has no triangles.");
+
+        // Prepare a typed array to hold per-face roughness
+        const values = new Float32Array(nFaces);
+
+        // Reusable vectors for normal calculation
+        const upVector = new THREE.Vector3(0, 0, 1);
+        const v1 = new THREE.Vector3();
+        const v2 = new THREE.Vector3();
+        const v3 = new THREE.Vector3();
+        const a = new THREE.Vector3();
+        const b = new THREE.Vector3();
+        const normal = new THREE.Vector3();
+
+        // We will predict in batches for speed and memory stability
+        const BATCH = 8192; // triangles per batch
+        let vmin = Infinity;
+        let vmax = -Infinity;
+
+        // Pre-parse constant parameters once
+        const p0 = safeParseFloat(layerHeight);
+        const p1 = safeParseFloat(extrusionTemp);
+        const p2 = safeParseFloat(wallSpeed);
+        const p3 = safeParseFloat(infillDensity);
+        const p4 = safeParseFloat(wallThickness);
+        const p5 = safeParseFloat(bedTemp);
+        const p6 = safeParseFloat(fanSpeed);
+
+        // Validate constant parameters
+        if (![p0,p1,p2,p3,p4,p5,p6].every(Number.isFinite)) {
+          setRoughnessStatus("invalid params");
+          recomputeRoughnessBtn.disabled = false;
+          return;
+        }
+
+        // Loop batches
+        for (let startFace = 0; startFace < nFaces; startFace += BATCH) {
+          if (token !== roughnessComputeToken) return; // cancelled
+
+          const endFace = Math.min(nFaces, startFace + BATCH);
+          const batchCount = endFace - startFace;
+
+          // Build features for the batch
+          const feat = new Float32Array(batchCount * 8);
+
+          for (let fi = 0; fi < batchCount; fi++) {
+            const faceIndex = startFace + fi;
+            const base = faceIndex * 9;
+
+            // local vertices
+            v1.set(positions[base], positions[base + 1], positions[base + 2]);
+            v2.set(positions[base + 3], positions[base + 4], positions[base + 5]);
+            v3.set(positions[base + 6], positions[base + 7], positions[base + 8]);
+
+            // to world
+            v1.applyMatrix4(mesh.matrixWorld);
+            v2.applyMatrix4(mesh.matrixWorld);
+            v3.applyMatrix4(mesh.matrixWorld);
+
+            // face normal via cross product
+            a.subVectors(v2, v1);
+            b.subVectors(v3, v1);
+            normal.crossVectors(a, b).normalize();
+
+            const angleDeg = normal.angleTo(upVector) * (180 / Math.PI);
+
+            // Fill row in feature array
+            const row = fi * 8;
+            feat[row + 0] = p0;
+            feat[row + 1] = p1;
+            feat[row + 2] = p2;
+            feat[row + 3] = p3;
+            feat[row + 4] = p4;
+            feat[row + 5] = p5;
+            feat[row + 6] = p6;
+            feat[row + 7] = angleDeg;
+          }
+
+          // Apply MinMax scaling row-wise but vectorized in JS
+          // x_scaled = x * scale_ + min_
+          if (scaler && scaler.kind === "minmax") {
+            const min_ = scaler.min_;
+            const scale_ = scaler.scale_;
+            for (let i = 0; i < feat.length; i += 8) {
+              feat[i + 0] = feat[i + 0] * scale_[0] + min_[0];
+              feat[i + 1] = feat[i + 1] * scale_[1] + min_[1];
+              feat[i + 2] = feat[i + 2] * scale_[2] + min_[2];
+              feat[i + 3] = feat[i + 3] * scale_[3] + min_[3];
+              feat[i + 4] = feat[i + 4] * scale_[4] + min_[4];
+              feat[i + 5] = feat[i + 5] * scale_[5] + min_[5];
+              feat[i + 6] = feat[i + 6] * scale_[6] + min_[6];
+              feat[i + 7] = feat[i + 7] * scale_[7] + min_[7];
+            }
+          }
+
+          // Predict with tfjs (batch)
+          const xTensor = window.tf.tensor2d(feat, [batchCount, 8]);
+          let yTensor = null;
+
+          try {
+            yTensor = tfModel.predict(xTensor);
+            const yData = await yTensor.data(); // Float32Array-like
+
+            for (let fi = 0; fi < batchCount; fi++) {
+              const faceIndex = startFace + fi;
+              const yVal = yData[fi];
+              values[faceIndex] = yVal;
+
+              if (Number.isFinite(yVal)) {
+                if (yVal < vmin) vmin = yVal;
+                if (yVal > vmax) vmax = yVal;
+              }
+            }
+          } finally {
+            xTensor.dispose();
+            if (yTensor) yTensor.dispose();
+          }
+        }
+
+        // If cancelled, exit silently
+        if (token !== roughnessComputeToken) return;
+
+        // Store cache + range
+        roughnessByFace = values;
+        roughnessMin = Number.isFinite(vmin) ? vmin : null;
+        roughnessMax = Number.isFinite(vmax) ? vmax : null;
+
+        // Update legend
+        roughMinLabel.textContent = (roughnessMin !== null) ? `${roughnessMin.toFixed(3)}` : "--";
+        roughMaxLabel.textContent = (roughnessMax !== null) ? `${roughnessMax.toFixed(3)}` : "--";
+
+        // Apply colors to geometry
+        applyPerFaceColorsFromRoughness(values, roughnessMin, roughnessMax);
+
+        setRoughnessStatus("ready");
+      } catch (err) {
+        console.error("Roughness map compute failed:", err);
+        setRoughnessStatus("error");
+      } finally {
+        recomputeRoughnessBtn.disabled = false;
+      }
+    }
+
+    function applyPerFaceColorsFromRoughness(values, vmin, vmax) {
+      if (!mesh) return;
+      if (!values || values.length === 0) return;
+
+      const geometry = mesh.geometry;
+      const posAttr = geometry.getAttribute("position");
+      const nFaces = Math.floor(posAttr.array.length / 9);
+
+      // If range collapses, avoid divide-by-zero
+      const lo = (Number.isFinite(vmin) ? vmin : 0);
+      const hi = (Number.isFinite(vmax) ? vmax : 1);
+      const denom = (hi - lo === 0) ? 1 : (hi - lo);
+
+      const colors = new Float32Array(nFaces * 9); // 3 vertices * RGB
+
+      // FEA-like colormap via hue from blue (240) to red (0)
+      // normalized t in [0,1] -> hue = 240*(1-t)
+      const color = new THREE.Color();
+
+      for (let f = 0; f < nFaces; f++) {
+        const v = values[f];
+        let t = 0.0;
+
+        if (Number.isFinite(v)) {
+          t = (v - lo) / denom;
+          if (t < 0) t = 0;
+          if (t > 1) t = 1;
+        }
+
+        const hue = 240 * (1 - t);
+        color.setHSL(hue / 360, 1.0, 0.5);
+
+        const base = f * 9;
+        // same color for 3 vertices
+        colors[base + 0] = color.r; colors[base + 1] = color.g; colors[base + 2] = color.b;
+        colors[base + 3] = color.r; colors[base + 4] = color.g; colors[base + 5] = color.b;
+        colors[base + 6] = color.r; colors[base + 7] = color.g; colors[base + 8] = color.b;
+      }
+
+      geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+      mesh.material.dispose();
+      mesh.material = new THREE.MeshPhongMaterial({
+        vertexColors: true,
+        shininess: 50,
+        specular: 0x111111,
+        wireframe: wireframeToggle.checked
+      });
+    }
+
+    // ==========================
+    // Viewer init / UI
+    // ==========================
+    function injectPrintParams() {
+      const params = [
+        { label: "Layer Height", id: "layerHeightInput", value: "0.12", unit: "mm" },
+        { label: "Extrusion Temp", id: "extrusionTempInput", value: "190", unit: "°C" },
+        { label: "Wall Speed", id: "wallSpeedInput", value: "200", unit: "mm/s" },
+        { label: "Infill Density", id: "infillDensityInput", value: "15", unit: "%" },
+        { label: "Wall Thickness", id: "wallThicknessInput", value: "0.42", unit: "mm" },
+        { label: "Bed Temp", id: "bedTempInput", value: "60", unit: "°C" },
+        { label: "Fan Speed", id: "fanSpeedInput", value: "80", unit: "%" }
+      ];
+      const c = document.getElementById("print-params-container");
+      c.innerHTML = params.map(p => createParam(p.label, p.id, p.value, p.unit)).join("");
+    }
+
+    window.updateParameters = function () {
+      layerHeight = document.getElementById("layerHeightInput").value;
+      extrusionTemp = document.getElementById("extrusionTempInput").value;
+      wallSpeed = document.getElementById("wallSpeedInput").value;
+      const infillInput = document.getElementById("infillDensityInput");
+      infillDensity = infillInput.value;
+      wallThickness = document.getElementById("wallThicknessInput").value;
+      bedTemp = document.getElementById("bedTempInput").value;
+      const fanInput = document.getElementById("fanSpeedInput");
+      fanSpeed = fanInput.value;
+
+      const infillValue = safeParseFloat(infillDensity);
+      if (Number.isFinite(infillValue) && infillValue > 100) {
+        infillDensity = "100";
+        infillInput.value = "100";
+      }
+
+      const fanValue = safeParseFloat(fanSpeed);
+      if (Number.isFinite(fanValue) && fanValue > 100) {
+        fanSpeed = "100";
+        fanInput.value = "100";
+      }
+
+      // If roughness map is enabled, recompute map (params changed)
+      if (colorMode === "roughness" && mesh) scheduleRoughnessMapCompute();
+
+      schedulePrediction();
+    };
+
+    window.validatePrintParamKey = function (event) {
+      const key = event.key;
+      const value = event.target.value;
+
+      if (["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Backspace","Delete","Tab","Enter","Home","End"].includes(key)) return;
+
+      if (key === ".") {
+        if (value.includes(".")) event.preventDefault();
+        return;
+      }
+
+      if (key >= "0" && key <= "9") return;
+
+      event.preventDefault();
+    };
+
+    function setupControlDisabling() {
+      sidebar.addEventListener("mouseenter", () => { if (controls) controls.enabled = false; });
+      sidebar.addEventListener("mouseleave", () => { if (controls) controls.enabled = true; });
+    }
+
+    function globalInit() {
+      container = document.getElementById("container");
+
+      raycaster = new THREE.Raycaster();
+      mouse = new THREE.Vector2();
+
+      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 100000);
+      camera.position.set(200, 200, 200);
+      camera.up.set(0, 0, 1);
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x2d3748);
+
+      light = new THREE.HemisphereLight(0xE8E8E8, 0x111111, 1);
+      light.position.set(0, 0, 200);
+      scene.add(light);
+
+      const ambientLight = new THREE.AmbientLight(0x404040, 2);
+      scene.add(ambientLight);
+
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+      directionalLight.position.set(100, 100, 200);
+      scene.add(directionalLight);
+
+      gridHelper = new THREE.GridHelper(400, 40, 0x888888, 0x444444);
+      gridHelper.rotation.x = Math.PI / 2;
+      gridHelper.position.z = 0;
+      scene.add(gridHelper);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      container.appendChild(renderer.domElement);
+
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.1;
+      controls.update();
+
+      window.addEventListener("resize", onWindowResize, false);
+      renderer.domElement.addEventListener("mousemove", onMouseMove, false);
+
+      inclinationToggle.addEventListener("change", toggleInclinationView);
+      roughnessToggle.addEventListener("change", toggleRoughnessView);
+      recomputeRoughnessBtn.addEventListener("click", () => {
+        if (mesh && modelReady && tfModel) scheduleRoughnessMapCompute();
+      });
+
+      setupControlDisabling();
+      injectPrintParams();
+      updateParameters();
+
+      setRoughnessStatus("idle");
+      roughnessLegend.style.display = "none";
+
+      loadMLAssets();
+      animate();
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    function onWindowResize() {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    // --- File load ---
+    window.runViewer = function () {
+      if (!fileInput.files[0]) return;
+
+      const file = fileInput.files[0];
+      fileNameEl.textContent = file.name;
+      loadingSpinner.style.display = "flex";
+
+      updateParameters();
+
+      const extension = file.name.split(".").pop().toLowerCase();
+      const reader = new FileReader();
+
+      reader.addEventListener("load", function (event) {
+        try {
+          loadGeometry(event.target.result, extension);
+        } catch (err) {
+          console.error(err);
+          console.error(STRING_ERROR);
+          loadingSpinner.style.display = "none";
+        }
+      }, false);
+
+      if (extension === "stl" || extension === "3ds") reader.readAsArrayBuffer(file);
+      else if (extension === "obj") reader.readAsText(file);
+      else {
+        console.error(STRING_ERROR);
+        fileNameEl.textContent = "Invalid file type. Please use STL, OBJ, or 3DS.";
+        loadingSpinner.style.display = "none";
+      }
+    };
+
+    function loadGeometry(contents, extension) {
+      if (mesh) {
+        scene.remove(mesh);
+        mesh.geometry.dispose();
+        mesh.material.dispose();
+        mesh = null;
+      }
+
+      // Reset toggles + legend views
+      inclinationToggle.checked = false;
+      inclinationLegend.style.display = "none";
+      inclinationAngleDisplay.style.display = "none";
+      angleValue.textContent = "--";
+
+      roughnessToggle.checked = false;
+      roughnessLegend.style.display = "none";
+      setRoughnessStatus("idle");
+      roughMinLabel.textContent = "--";
+      roughMaxLabel.textContent = "--";
+
+      // Reset modes + caches
+      colorMode = "none";
+      roughnessByFace = null;
+      roughnessMin = null;
+      roughnessMax = null;
+
+      injectPrintParams();
+      updateParameters();
+
+      currentSurfaceAngleDeg = null;
+      hudAngleEl.textContent = "--";
+      predValueEl.textContent = "--";
+      lastHoveredFaceIndex = null;
+
+      let geometry;
+
+      if (extension === "obj") {
+        const object = new OBJLoader().parse(contents);
+        const sceneConverter = new THREE.Scene();
+        sceneConverter.add(object);
+        const exporter = new STLExporter();
+        const stlData = exporter.parse(sceneConverter, { binary: true });
+        geometry = new STLLoader().parse(stlData);
+      } else if (extension === "3ds") {
+        const object = new TDSLoader().parse(contents);
+        const sceneConverter = new THREE.Scene();
+        sceneConverter.add(object);
+        const exporter = new STLExporter();
+        const stlData = exporter.parse(sceneConverter, { binary: true });
+        geometry = new STLLoader().parse(stlData);
+      } else {
+        geometry = new STLLoader().parse(contents);
+      }
+
+      geometry.computeVertexNormals();
+      geometry.computeBoundingBox();
+
+      // minZ -> 0
+      const minZ = geometry.boundingBox.min.z;
+      geometry.translate(0, 0, -minZ);
+
+      // center x/y
+      geometry.computeBoundingBox();
+      const centeredBox = geometry.boundingBox;
+      const center = centeredBox.getCenter(new THREE.Vector3());
+      geometry.translate(-center.x, -center.y, 0);
+
+      originalGeometry = geometry.clone();
+
+      const material = new THREE.MeshPhongMaterial({ color: 0xffffff, shininess: 50, specular: 0x111111 });
+      mesh = new THREE.Mesh(geometry, material);
+      scene.add(mesh);
+
+      mesh.geometry.computeBoundingBox();
+      const box = mesh.geometry.boundingBox;
+      height = box.max.z - box.min.z;
+      width = box.max.x - box.min.x;
+      depth = box.max.y - box.min.y;
+      vol = calculateVolume(mesh);
+
+      updateGridHeight();
+
+      volumeValueEl.innerHTML = (vol / 1000).toFixed(2);
+      widthValueEl.innerHTML = (width / 10).toFixed(2);
+      heightValueEl.innerHTML = (height / 10).toFixed(2);
+      depthValueEl.innerHTML = (depth / 10).toFixed(2);
+
+      resetRotation();
+      resetMeshLevel();
+      fitCameraToObject(mesh, 1.5);
+
+      loadingSpinner.style.display = "none";
+      schedulePrediction();
+    }
+
+    // --- Rotation ---
+    function rotateObject(axis, degrees) {
+      if (!mesh) return;
+      const radians = degrees * (Math.PI / 180);
+
+      if (axis === "x") {
+        mesh.rotation.x = radians;
+        rotateXValue.innerText = degrees;
+        rotateXSlider.value = degrees;
+        rotateXInput.value = degrees;
+      } else if (axis === "y") {
+        mesh.rotation.y = radians;
+        rotateYValue.innerText = degrees;
+        rotateYSlider.value = degrees;
+        rotateYInput.value = degrees;
+      } else if (axis === "z") {
+        mesh.rotation.z = radians;
+        rotateZValue.innerText = degrees;
+        rotateZSlider.value = degrees;
+        rotateZInput.value = degrees;
+      }
+
+      updateGridHeight();
+
+      // Re-apply current colormap if enabled
+      if (colorMode === "inclination") calculateAndApplyInclinationColors();
+      if (colorMode === "roughness") scheduleRoughnessMapCompute();
+
+      schedulePrediction();
+    }
+
+    window.updateRotationFromSlider = function (axis, value) {
+      rotateObject(axis, parseInt(value, 10));
+    };
+
+    window.updateRotationFromInput = function (axis, value) {
+      let degrees = parseFloat(value);
+      if (isNaN(degrees)) return;
+      if (degrees < -180) degrees = -180;
+      if (degrees > 180) degrees = 180;
+
+      const inputEl = (axis === "x") ? rotateXInput : (axis === "y") ? rotateYInput : rotateZInput;
+      if (inputEl.value != degrees) inputEl.value = degrees;
+
+      rotateObject(axis, degrees);
+    };
+
+    window.resetRotation = function () {
+      if (mesh) mesh.rotation.set(0, 0, 0);
+      updateGridHeight();
+
+      rotateXSlider.value = 0; rotateYSlider.value = 0; rotateZSlider.value = 0;
+      rotateXInput.value = 0; rotateYInput.value = 0; rotateZInput.value = 0;
+      rotateXValue.innerText = 0; rotateYValue.innerText = 0; rotateZValue.innerText = 0;
+
+      if (colorMode === "inclination") calculateAndApplyInclinationColors();
+      if (colorMode === "roughness") scheduleRoughnessMapCompute();
+
+      schedulePrediction();
+    };
+
+    // --- Wireframe ---
+    window.toggleWireframe = function (enabled) {
+      if (!mesh) return;
+      mesh.material.wireframe = enabled;
+
+      // keep colors if any; if none, restore base color
+      if (colorMode === "none" && !enabled) mesh.material.color?.setHex?.(0xFFFFFF);
+    };
+
+    window.resetMeshLevel = function () {
+      wireframeToggle.checked = false;
+      if (mesh) mesh.material.wireframe = false;
+
+      // Re-apply current mode material settings
+      if (colorMode === "inclination") calculateAndApplyInclinationColors();
+      else if (colorMode === "roughness" && roughnessByFace) applyPerFaceColorsFromRoughness(roughnessByFace, roughnessMin, roughnessMax);
+      else resetToOriginalMaterial();
+    };
+
+    // --- Inclination view (mutually exclusive with roughness) ---
+    function toggleInclinationView() {
+      const enabled = inclinationToggle.checked;
+
+      if (!mesh) {
+        inclinationToggle.checked = false;
+        return;
+      }
+
+      if (enabled) {
+        // turn off roughness
+        roughnessToggle.checked = false;
+        roughnessLegend.style.display = "none";
+        setRoughnessStatus("idle");
+        colorMode = "inclination";
+
+        calculateAndApplyInclinationColors();
+        inclinationLegend.style.display = "block";
+        inclinationAngleDisplay.style.display = "block";
+      } else {
+        inclinationLegend.style.display = "none";
+        inclinationAngleDisplay.style.display = "none";
+        angleValue.textContent = "--";
+
+        colorMode = "none";
+        resetToOriginalMaterial();
+      }
+    }
+
+    function calculateAndApplyInclinationColors() {
+      if (!mesh) return;
+
+      mesh.updateMatrixWorld(true);
+
+      const geometry = mesh.geometry;
+      const positions = geometry.getAttribute("position").array;
+      const colors = [];
+      const upVector = new THREE.Vector3(0, 0, 1);
+
+      const v1 = new THREE.Vector3();
+      const v2 = new THREE.Vector3();
+      const v3 = new THREE.Vector3();
+      const triangle = new THREE.Triangle();
+      const normal = new THREE.Vector3();
+
+      for (let i = 0; i < positions.length; i += 9) {
+        v1.set(positions[i], positions[i + 1], positions[i + 2]);
+        v2.set(positions[i + 3], positions[i + 4], positions[i + 5]);
+        v3.set(positions[i + 6], positions[i + 7], positions[i + 8]);
+
+        v1.applyMatrix4(mesh.matrixWorld);
+        v2.applyMatrix4(mesh.matrixWorld);
+        v3.applyMatrix4(mesh.matrixWorld);
+
+        triangle.set(v1, v2, v3);
+        triangle.getNormal(normal);
+
+        const angleDeg = normal.angleTo(upVector) * (180 / Math.PI);
+        const color = getColorForAngle(angleDeg);
+
+        colors.push(color.r, color.g, color.b);
+        colors.push(color.r, color.g, color.b);
+        colors.push(color.r, color.g, color.b);
+      }
+
+      geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+
+      mesh.material.dispose();
+      mesh.material = new THREE.MeshPhongMaterial({
+        vertexColors: true,
+        shininess: 50,
+        specular: 0x111111,
+        wireframe: wireframeToggle.checked
+      });
+    }
+
+    function mapRange(value, inMin, inMax, outMin, outMax) {
+      return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+    }
+
+    function getColorForAngle(angleDeg) {
+      let hue;
+      if (angleDeg < 36) hue = mapRange(angleDeg, 0, 36, 240, 180);
+      else if (angleDeg < 72) hue = mapRange(angleDeg, 36, 72, 180, 120);
+      else if (angleDeg < 108) hue = mapRange(angleDeg, 72, 108, 120, 60);
+      else if (angleDeg < 144) hue = mapRange(angleDeg, 108, 144, 60, 30);
+      else hue = mapRange(angleDeg, 144, 180, 30, 0);
+
+      const color = new THREE.Color();
+      color.setHSL(hue / 360, 1.0, 0.5);
+      return color;
+    }
+
+    // --- Roughness view (mutually exclusive with inclination) ---
+    function toggleRoughnessView() {
+      const enabled = roughnessToggle.checked;
+
+      if (!mesh) {
+        roughnessToggle.checked = false;
+        roughnessLegend.style.display = "none";
+        setRoughnessStatus("idle");
+        return;
+      }
+
+      if (enabled) {
+        // turn off inclination
+        inclinationToggle.checked = false;
+        inclinationLegend.style.display = "none";
+        inclinationAngleDisplay.style.display = "none";
+        angleValue.textContent = "--";
+
+        colorMode = "roughness";
+        roughnessLegend.style.display = "block";
+
+        // if already computed, just apply; else compute
+        if (roughnessByFace && roughnessByFace.length > 0) {
+          applyPerFaceColorsFromRoughness(roughnessByFace, roughnessMin, roughnessMax);
+          setRoughnessStatus("ready");
+        } else {
+          setRoughnessStatus(modelReady ? "queued" : "waiting model");
+          if (modelReady && tfModel) scheduleRoughnessMapCompute();
+        }
+      } else {
+        roughnessLegend.style.display = "none";
+        setRoughnessStatus("idle");
+
+        colorMode = "none";
+        roughnessByFace = null;
+        roughnessMin = null;
+        roughnessMax = null;
+
+        resetToOriginalMaterial();
+      }
+    }
+
+    function resetToOriginalMaterial() {
+      if (!mesh) return;
+      mesh.material.dispose();
+      mesh.material = new THREE.MeshPhongMaterial({
+        color: 0xffffff,
+        shininess: 50,
+        specular: 0x111111,
+        wireframe: wireframeToggle.checked
+      });
+    }
+
+    // --- Mouse hover angle ---
+    let lastHoveredFaceIndex = null;
+
+    function onMouseMove(event) {
+      if (!mesh) return;
+
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      mesh.updateMatrixWorld(true);
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObject(mesh);
+
+      if (intersects.length > 0) {
+        const hit = intersects[0];
+        const face = hit.face;
+        const faceIndex = (typeof hit.faceIndex === "number") ? hit.faceIndex : null;
+        lastHoveredFaceIndex = faceIndex;
+
+        if (face) {
+          const upVector = new THREE.Vector3(0, 0, 1);
+          const worldNormal = face.normal.clone().transformDirection(mesh.matrixWorld).normalize();
+          const angleDeg = worldNormal.angleTo(upVector) * (180 / Math.PI);
+
+          currentSurfaceAngleDeg = angleDeg;
+
+          // Sidebar angle display only if inclination is enabled
+          if (inclinationToggle.checked) {
+            angleValue.textContent = angleDeg.toFixed(1);
+          }
+
+          // HUD always shows angle
+          hudAngleEl.textContent = angleDeg.toFixed(1);
+
+          // Update prediction HUD
+          schedulePrediction();
+        }
+      } else {
+        currentSurfaceAngleDeg = null;
+        lastHoveredFaceIndex = null;
+
+        if (inclinationToggle.checked) angleValue.textContent = "--";
+        hudAngleEl.textContent = "--";
+        predValueEl.textContent = "--";
+      }
+    }
+
+    // --- Utils ---
+    function updateGridHeight() {
+      if (!mesh || !gridHelper) return;
+
+      mesh.updateMatrixWorld(true);
+
+      const positions = mesh.geometry.getAttribute("position");
+      const vertex = new THREE.Vector3();
+      let minZ = Infinity;
+
+      for (let i = 0; i < positions.count; i++) {
+        vertex.fromBufferAttribute(positions, i).applyMatrix4(mesh.matrixWorld);
+        if (vertex.z < minZ) minZ = vertex.z;
+      }
+
+      gridHelper.position.z = (minZ === Infinity) ? 0 : minZ;
+    }
+
+    function calculateVolume(mesh) {
+      let v = 0;
+      const positions = mesh.geometry.getAttribute("position").array;
+      for (let i = 0; i < positions.length; i += 9) {
+        const t1 = new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2]);
+        const t2 = new THREE.Vector3(positions[i + 3], positions[i + 4], positions[i + 5]);
+        const t3 = new THREE.Vector3(positions[i + 6], positions[i + 7], positions[i + 8]);
+        v += signedVolumeOfTriangle(t1, t2, t3);
+      }
+      return Math.abs(v);
+    }
+
+    function signedVolumeOfTriangle(p1, p2, p3) {
+      return p1.dot(p2.cross(p3)) / 6.0;
+    }
+
+    function fitCameraToObject(object, offset = 1.5) {
+      const box = new THREE.Box3().setFromObject(object);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+
+      const maxSize = Math.max(size.x, size.y, size.z);
+      const fitHeightDistance = maxSize / (2 * Math.atan(Math.PI * camera.fov / 360));
+      const fitWidthDistance = fitHeightDistance / camera.aspect;
+      const distance = offset * Math.max(fitHeightDistance, fitWidthDistance);
+
+      const direction = controls.target.clone()
+        .sub(camera.position)
+        .normalize()
+        .multiplyScalar(distance);
+
+      controls.maxDistance = distance * 10;
+      controls.target.copy(center);
+
+      camera.near = distance / 100;
+      camera.far = distance * 100;
+      camera.updateProjectionMatrix();
+
+      camera.position.copy(controls.target).sub(direction);
+      controls.update();
+    }
+
+    // Start
+    globalInit();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>3D Printing Parameters & Surface Roughness</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js for interactive graph -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-elevated: #0b1020;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.15);
+      --accent-strong: #0ea5e9;
+      --border-subtle: rgba(148, 163, 184, 0.2);
+      --text: #e5e7eb;
+      --text-soft: #9ca3af;
+      --danger: #f97373;
+      --radius-xl: 18px;
+      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.8);
+      --blur-bg: blur(16px);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #1f2937 0, #020617 40%, #000 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: var(--blur-bg);
+      background: linear-gradient(to right, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.8));
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .nav {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: radial-gradient(circle at 30% 30%, #a855f7, #0ea5e9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.6);
+      flex-shrink: 0;
+    }
+
+    .logo span {
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .nav-title {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-title h1 {
+      font-size: 16px;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .nav-title span {
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .nav-pill {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      font-size: 11px;
+      color: var(--text-soft);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), rgba(17, 24, 39, 0.95));
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .theme-toggle {
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(15, 23, 42, 0.75);
+      color: var(--text);
+      font-size: 11px;
+      padding: 6px 10px;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .theme-toggle:hover {
+      border-color: rgba(56, 189, 248, 0.6);
+    }
+
+    .nav-pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.35);
+    }
+
+    main {
+      flex: 1;
+      max-width: 1400px;
+      width: 100%;
+      padding: 20px;
+      margin: 0 auto 30px auto;
+      display: grid;
+      grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
+      gap: 24px;
+    }
+
+    @media (max-width: 960px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Panels */
+
+    .panel {
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.96));
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      padding: 18px 18px 20px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.12), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(129, 140, 248, 0.12), transparent 60%);
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .panel-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      gap: 8px;
+    }
+
+    .panel-title {
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-title-badge {
+      padding: 2px 8px;
+      font-size: 11px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--accent);
+    }
+
+    .panel-subtitle {
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    /* Filters */
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .filters-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .filters-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    label {
+      font-size: 11px;
+      color: var(--text-soft);
+      margin-bottom: 4px;
+      display: inline-block;
+    }
+
+    .input, select {
+      width: 100%;
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.98));
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--text);
+      color-scheme: dark;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    .input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3);
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.97), rgba(15, 23, 42, 1));
+    }
+
+    .input::placeholder {
+      color: rgba(148, 163, 184, 0.9);
+    }
+
+    select option {
+      background: #ffffff;
+      color: #0f172a;
+    }
+
+    @supports (color-scheme: dark) {
+      body:not(.theme-light) select option {
+        background: #0b1020;
+        color: var(--text);
+      }
+    }
+
+    .pill-input {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      padding: 6px 10px;
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .pill-input span {
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .pill-input select {
+      border: none;
+      padding-left: 2px;
+      padding-right: 2px;
+      background: transparent;
+    }
+
+    .pill-input select:focus {
+      box-shadow: none;
+    }
+
+    /* Object list */
+
+    .object-list {
+      border-radius: 14px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 1));
+      max-height: 370px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .object-list-header {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 6px;
+      padding: 7px 10px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-soft);
+      border-bottom: 1px solid rgba(31, 41, 55, 1);
+      background: linear-gradient(to right, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.92));
+    }
+
+    .object-list-body {
+      overflow-y: auto;
+    }
+
+    .object-row {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 6px;
+      padding: 7px 10px;
+      font-size: 12px;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.12s ease, transform 0.05s ease;
+    }
+
+    .object-row:nth-child(even) {
+      background: rgba(15, 23, 42, 0.96);
+    }
+
+    .object-row:hover {
+      background: linear-gradient(to right, rgba(56, 189, 248, 0.18), rgba(15, 23, 42, 0.98));
+      transform: translateY(-1px);
+    }
+
+    .object-row.selected {
+      background: linear-gradient(to right, rgba(56, 189, 248, 0.26), rgba(15, 23, 42, 0.98));
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.7) inset;
+    }
+
+    .badge-param {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      color: var(--accent);
+      gap: 6px;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.5);
+    }
+
+    /* Right column: details + graph */
+
+    .details-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+      margin-bottom: 14px;
+    }
+
+    .detail-card {
+      border-radius: 12px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.98));
+      padding: 7px 9px;
+      min-height: 54px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+    }
+
+    .detail-label {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .detail-value {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .detail-pill {
+      font-size: 11px;
+      color: var(--accent);
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.6);
+      padding: 2px 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+      background: rgba(8, 47, 73, 0.8);
+    }
+
+    .detail-pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .object-id-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.95);
+      font-size: 12px;
+      margin-bottom: 6px;
+      background: linear-gradient(to right, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.9));
+    }
+
+    .object-id-chip span:first-child {
+      font-size: 11px;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .object-id-chip strong {
+      letter-spacing: 0.02em;
+    }
+
+    .object-id-chip small {
+      font-size: 11px;
+      color: var(--accent);
+    }
+
+    /* Angle & file controls */
+
+    .angle-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+      margin-top: 6px;
+    }
+
+    .angle-row > * {
+      flex: 1;
+      min-width: 160px;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: none;
+      font-size: 12px;
+      padding: 8px 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: linear-gradient(to right, var(--accent-strong), #6366f1);
+      color: #0b1120;
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 0.9),
+        0 12px 24px rgba(37, 99, 235, 0.5);
+      transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      filter: brightness(1.05);
+      transform: translateY(-1px);
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 0.9),
+        0 16px 30px rgba(37, 99, 235, 0.65);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--accent);
+      box-shadow:
+        0 0 0 1px rgba(56, 189, 248, 0.5),
+        0 8px 18px rgba(37, 99, 235, 0.25);
+    }
+
+    .btn-secondary:hover {
+      filter: none;
+      background: rgba(56, 189, 248, 0.18);
+      box-shadow:
+        0 0 0 1px rgba(56, 189, 248, 0.6),
+        0 10px 22px rgba(37, 99, 235, 0.35);
+    }
+
+    .subtle-link {
+      font-size: 11px;
+      color: var(--text-soft);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      opacity: 0.9;
+    }
+
+    .subtle-link:hover {
+      color: var(--accent);
+      opacity: 1;
+    }
+
+    .subtle-link span {
+      font-size: 14px;
+    }
+
+    .subtle-link.disabled {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    /* Graph area */
+
+    .graph-card {
+      border-radius: 14px;
+      border: 1px solid rgba(31, 41, 55, 1);
+      background: radial-gradient(circle at top left, rgba(15, 23, 42, 1), rgba(15, 23, 42, 0.98));
+      padding: 12px 12px 14px 12px;
+      margin-top: 10px;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .graph-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .graph-title {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .graph-subtitle {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .graph-status {
+      font-size: 11px;
+      color: var(--text-soft);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .graph-status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.6);
+    }
+
+    .graph-status-dot.ok {
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.35);
+    }
+
+    .graph-status-dot.error {
+      background: var(--danger);
+      box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.35);
+    }
+
+    .graph-canvas-wrapper {
+      position: relative;
+      flex: 1;
+      min-height: 220px;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    footer {
+      max-width: 1200px;
+      margin: 0 auto 12px auto;
+      padding: 0 20px;
+      font-size: 11px;
+      color: var(--text-soft);
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    /* Light theme overrides for print-friendly screenshots */
+    body.theme-light {
+      --bg: #f8fafc;
+      --bg-elevated: #ffffff;
+      --accent: #0284c7;
+      --accent-soft: rgba(2, 132, 199, 0.15);
+      --accent-strong: #0ea5e9;
+      --border-subtle: rgba(148, 163, 184, 0.6);
+      --text: #0f172a;
+      --text-soft: #475569;
+      --grid: rgba(148, 163, 184, 0.7);
+      --danger: #b91c1c;
+      --shadow-soft: 0 16px 32px rgba(15, 23, 42, 0.12);
+    }
+
+    body.theme-light {
+      background: linear-gradient(180deg, #f8fafc 0, #e2e8f0 100%);
+      color: var(--text);
+    }
+
+    body.theme-light header {
+      background: rgba(248, 250, 252, 0.92);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    body.theme-light .logo {
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.2);
+    }
+
+    body.theme-light .nav-pill {
+      background: #ffffff;
+      border-color: var(--border-subtle);
+      color: var(--text-soft);
+    }
+
+    body.theme-light .theme-toggle {
+      background: #ffffff;
+      color: var(--text);
+    }
+
+    body.theme-light .panel,
+    body.theme-light .detail-card,
+    body.theme-light .graph-card,
+    body.theme-light .object-list {
+      background: #ffffff;
+      border-color: var(--border-subtle);
+    }
+
+    body.theme-light .panel::before {
+      opacity: 0.12;
+    }
+
+    body.theme-light .panel-title-badge,
+    body.theme-light .badge-param,
+    body.theme-light .object-id-chip {
+      background: #f8fafc;
+      border-color: var(--border-subtle);
+    }
+
+    body.theme-light .input,
+    body.theme-light select {
+      background: #ffffff;
+      border-color: rgba(148, 163, 184, 0.8);
+      color: var(--text);
+      color-scheme: light;
+    }
+
+    body.theme-light .input::placeholder {
+      color: rgba(71, 85, 105, 0.85);
+    }
+
+    body.theme-light select option {
+      background: #ffffff;
+      color: #0f172a;
+    }
+
+    body.theme-light .pill-input {
+      background: #f1f5f9;
+      border-color: rgba(148, 163, 184, 0.8);
+      color: var(--text-soft);
+    }
+
+    body.theme-light .object-list-header {
+      background: #f1f5f9;
+      border-bottom-color: var(--border-subtle);
+    }
+
+    body.theme-light .object-row:nth-child(even) {
+      background: #f8fafc;
+    }
+
+    body.theme-light .object-row:hover {
+      background: rgba(2, 132, 199, 0.08);
+    }
+
+    body.theme-light .object-row.selected {
+      background: rgba(2, 132, 199, 0.16);
+      box-shadow: 0 0 0 1px rgba(2, 132, 199, 0.4) inset;
+    }
+
+    body.theme-light .detail-pill {
+      background: rgba(2, 132, 199, 0.1);
+      border-color: rgba(2, 132, 199, 0.4);
+      color: #0369a1;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <div class="nav-left">
+      <div class="logo">
+        <span>3D</span>
+      </div>
+      <div class="nav-title">
+        <h1>3D Printing Data Explorer</h1>
+        <span>Interactive parameters & surface roughness viewer</span>
+      </div>
+    </div>
+    <div class="nav-right">
+      <div class="nav-pill">
+        <span class="nav-pill-dot"></span>
+        <span>Surface Profile Data</span>
+      </div>
+      <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false">
+        Light mode
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- LEFT: OBJECT SELECTION & FILTERS -->
+  <section class="panel">
+    <div class="panel-inner">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">
+            Objects &amp; Printing Parameters
+            <span class="panel-title-badge" id="objectCount">0 objects</span>
+          </div>
+          <div class="panel-subtitle">
+            Filter and select a 3D printed object to inspect its printing parameters.
+          </div>
+        </div>
+      </div>
+
+      <div class="filters">
+        <div>
+          <label for="searchId">Search by Object ID</label>
+          <input
+            id="searchId"
+            class="input"
+            type="text"
+            placeholder="e.g. Object-1, Object-12…"
+          />
+        </div>
+
+        <div class="filters-row">
+          <div class="pill-input">
+            <span>Layer Height</span>
+            <select id="filterLayer">
+              <option value="">Any</option>
+            </select>
+          </div>
+          <div class="pill-input">
+            <span>Extrusion Temp</span>
+            <select id="filterTemp">
+              <option value="">Any</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filters-row">
+          <div class="pill-input">
+            <span>Infill Density</span>
+            <select id="filterInfill">
+              <option value="">Any</option>
+            </select>
+          </div>
+          <div class="pill-input">
+            <span>Fan Speed</span>
+            <select id="filterFan">
+              <option value="">Any</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filters-row">
+          <div class="pill-input">
+            <span>Outer Wall Speed</span>
+            <select id="filterSpeed">
+              <option value="">Any</option>
+            </select>
+          </div>
+          <div class="pill-input">
+            <span>Wall Thickness</span>
+            <select id="filterWall">
+              <option value="">Any</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filters-row">
+          <div class="pill-input">
+            <span>Bed Temp</span>
+            <select id="filterBed">
+              <option value="">Any</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filters-actions">
+          <button type="button" class="btn btn-secondary" id="btnResetFilters">Reset filters</button>
+        </div>
+      </div>
+
+      <div class="object-list" id="objectList">
+        <div class="object-list-header">
+          <div>Object</div>
+          <div>Key Parameters</div>
+        </div>
+        <div class="object-list-body" id="objectListBody">
+          <!-- Rows injected by JS -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RIGHT: DETAILS + GRAPH -->
+  <section class="panel">
+    <div class="panel-inner">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">
+            Object Details &amp; Surface Profile
+            <span class="panel-title-badge">Interactive</span>
+          </div>
+          <div class="panel-subtitle">
+            Inspect parameters and visualize the surface roughness profile.
+          </div>
+        </div>
+      </div>
+
+      <div id="selectedObjectBlock">
+        <div class="object-id-chip">
+          <span>Selected</span>
+          <strong id="selectedId">None</strong>
+          <small id="selectedSummary">Choose an object from the list</small>
+        </div>
+
+        <div class="details-grid">
+          <div class="detail-card">
+            <div class="detail-label">Layer Height</div>
+            <div class="detail-value" id="detailLayer">–</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">Extrusion Temp</div>
+            <div class="detail-value" id="detailTemp">–</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">Outer Wall Speed</div>
+            <div class="detail-value" id="detailSpeed">–</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">Infill Density</div>
+            <div class="detail-value" id="detailInfill">–</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">Wall Thickness</div>
+            <div class="detail-value" id="detailWall">–</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">Bed Temp</div>
+            <div class="detail-value" id="detailBed">–</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">Fan Speed</div>
+            <div class="detail-value" id="detailFan">–</div>
+          </div>
+        </div>
+
+        <div class="angle-row">
+          <div>
+            <label for="angleSelect">Inclination Angle (°)</label>
+            <select id="angleSelect" disabled>
+              <option value="">Select angle</option>
+            </select>
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button class="btn" id="btnLoadProfile" disabled>
+              <span>Load Surface Profile</span>
+            </button>
+          </div>
+          <div style="flex: 0 0 auto;">
+            <label>&nbsp;</label>
+            <a href="#" id="reportLink" class="subtle-link disabled" target="_blank" rel="noopener">
+              <span>↗</span> Open object report
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="graph-card">
+        <div class="graph-header">
+          <div>
+            <div class="graph-title">Surface Roughness of 3D Printed Object</div>
+            <div class="graph-subtitle">
+              X [mm] vs Y [mm]
+            </div>
+          </div>
+          <div class="graph-status" id="graphStatus">
+            <div class="graph-status-dot" id="graphStatusDot"></div>
+            <span id="graphStatusText">Waiting for selection…</span>
+          </div>
+        </div>
+        <div class="graph-canvas-wrapper">
+          <canvas id="profileChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span>Tip: Start by filtering for a specific layer height or extrusion temperature, then select the object and angle.</span>
+</footer>
+
+<script>
+  // --- Global state ---
+  let allObjects = [];
+  let filteredObjects = [];
+  let selectedObject = null;
+  let profileChart = null;
+
+  // Candidate angles to probe for existing .txt files
+  const candidateAngles = [0, 10, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170];
+  const DOE_DATA_URL = "/doe_data/doe_table.json";
+  const MAHR_BASE_URL = "/mahr_data";
+  const THEME_KEY = "dataExplorerTheme";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    initThemeToggle();
+    setupEventListeners();
+    loadDoeData();
+  });
+
+  function initThemeToggle() {
+    const toggle = document.getElementById("themeToggle");
+    if (!toggle) return;
+
+    toggle.addEventListener("click", () => {
+      const isLight = document.body.classList.contains("theme-light");
+      applyTheme(isLight ? "dark" : "light");
+    });
+
+    applyTheme(getInitialTheme());
+  }
+
+  function getInitialTheme() {
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved === "light" || saved === "dark") return saved;
+    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+      return "light";
+    }
+    return "dark";
+  }
+
+  function applyTheme(mode) {
+    const isLight = mode === "light";
+    document.body.classList.toggle("theme-light", isLight);
+    const toggle = document.getElementById("themeToggle");
+    if (toggle) {
+      toggle.textContent = isLight ? "Dark mode" : "Light mode";
+      toggle.setAttribute("aria-pressed", isLight ? "true" : "false");
+    }
+    localStorage.setItem(THEME_KEY, isLight ? "light" : "dark");
+    updateChartTheme();
+  }
+
+  function getChartTheme() {
+    const styles = getComputedStyle(document.body);
+    return {
+      text: styles.getPropertyValue("--text").trim() || "#0f172a",
+      textSoft: styles.getPropertyValue("--text-soft").trim() || "#475569",
+      grid: styles.getPropertyValue("--grid").trim() || "rgba(148, 163, 184, 0.6)",
+      accent: styles.getPropertyValue("--accent-strong").trim() || "#0ea5e9"
+    };
+  }
+
+  function updateChartTheme() {
+    if (!profileChart) return;
+    const theme = getChartTheme();
+    profileChart.data.datasets.forEach((dataset) => {
+      dataset.borderColor = theme.accent;
+    });
+    profileChart.options.plugins.legend.labels.color = theme.text;
+    profileChart.options.plugins.title.color = theme.text;
+    profileChart.options.scales.x.title.color = theme.textSoft;
+    profileChart.options.scales.y.title.color = theme.textSoft;
+    profileChart.options.scales.x.ticks.color = theme.textSoft;
+    profileChart.options.scales.y.ticks.color = theme.textSoft;
+    profileChart.options.scales.x.grid.color = theme.grid;
+    profileChart.options.scales.y.grid.color = theme.grid;
+    profileChart.update();
+  }
+
+  function setupEventListeners() {
+    document.getElementById("searchId").addEventListener("input", applyFilters);
+    document.getElementById("filterLayer").addEventListener("change", applyFilters);
+    document.getElementById("filterTemp").addEventListener("change", applyFilters);
+    document.getElementById("filterInfill").addEventListener("change", applyFilters);
+    document.getElementById("filterFan").addEventListener("change", applyFilters);
+    document.getElementById("filterSpeed").addEventListener("change", applyFilters);
+    document.getElementById("filterWall").addEventListener("change", applyFilters);
+    document.getElementById("filterBed").addEventListener("change", applyFilters);
+    document.getElementById("btnResetFilters").addEventListener("click", resetFilters);
+
+    document.getElementById("angleSelect").addEventListener("change", () => {
+      const angle = document.getElementById("angleSelect").value;
+      document.getElementById("btnLoadProfile").disabled = !angle || !selectedObject;
+      updateReportLink(angle);
+    });
+
+    document.getElementById("btnLoadProfile").addEventListener("click", () => {
+      if (!selectedObject) return;
+      const angle = document.getElementById("angleSelect").value;
+      if (!angle) return;
+      loadProfileTxt(selectedObject.ID, angle);
+    });
+  }
+
+  async function loadDoeData() {
+    try {
+      // Adjust path if needed
+      const response = await fetch(DOE_DATA_URL);
+      if (!response.ok) {
+        throw new Error("Failed to load DOE data.");
+      }
+      const data = await response.json();
+      allObjects = data;
+      filteredObjects = [...allObjects];
+
+      populateFilterOptions();
+      renderObjectList();
+      updateObjectCount();
+    } catch (err) {
+      console.error(err);
+      alert("Unable to load DOE data from /doe_data/doe_table.json. Please check the path.");
+    }
+  }
+
+  function populateFilterOptions() {
+    const layerSelect = document.getElementById("filterLayer");
+    const tempSelect = document.getElementById("filterTemp");
+    const infillSelect = document.getElementById("filterInfill");
+    const fanSelect = document.getElementById("filterFan");
+    const speedSelect = document.getElementById("filterSpeed");
+    const wallSelect = document.getElementById("filterWall");
+    const bedSelect = document.getElementById("filterBed");
+
+    const unique = (arr) => Array.from(new Set(arr)).sort((a, b) => a - b);
+
+    const layers = unique(allObjects.map(o => o["Layer Height (mm)"]));
+    const temps = unique(allObjects.map(o => o["Extrusion Temp (°C)"]));
+    const infills = unique(allObjects.map(o => o["Infill Density (%)"]));
+    const fans = unique(allObjects.map(o => o["Fan Speed (%)"]));
+    const speeds = unique(allObjects.map(o => o["Outer Wall Speed (mm/s)"]));
+    const walls = unique(allObjects.map(o => o["Wall Thickness (mm)"]));
+    const beds = unique(allObjects.map(o => o["Bed Temp (°C)"]));
+
+    for (const v of layers) {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = `${v.toFixed(2)} mm`;
+      layerSelect.appendChild(opt);
+    }
+
+    for (const v of temps) {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = `${v} °C`;
+      tempSelect.appendChild(opt);
+    }
+
+    for (const v of infills) {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = `${v} %`;
+      infillSelect.appendChild(opt);
+    }
+
+    for (const v of fans) {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = `${v} %`;
+      fanSelect.appendChild(opt);
+    }
+
+    for (const v of speeds) {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = `${v} mm/s`;
+      speedSelect.appendChild(opt);
+    }
+
+    for (const v of walls) {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = `${v.toFixed(2)} mm`;
+      wallSelect.appendChild(opt);
+    }
+
+    for (const v of beds) {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = `${v} °C`;
+      bedSelect.appendChild(opt);
+    }
+  }
+
+  function resetFilters() {
+    document.getElementById("searchId").value = "";
+    [
+      "filterLayer",
+      "filterTemp",
+      "filterInfill",
+      "filterFan",
+      "filterSpeed",
+      "filterWall",
+      "filterBed"
+    ].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+    applyFilters();
+  }
+
+  function applyFilters() {
+    const searchId = document.getElementById("searchId").value.trim().toLowerCase();
+    const layer = document.getElementById("filterLayer").value;
+    const temp = document.getElementById("filterTemp").value;
+    const infill = document.getElementById("filterInfill").value;
+    const fan = document.getElementById("filterFan").value;
+    const speed = document.getElementById("filterSpeed").value;
+    const wall = document.getElementById("filterWall").value;
+    const bed = document.getElementById("filterBed").value;
+
+    filteredObjects = allObjects.filter(obj => {
+      if (searchId && !obj.ID.toLowerCase().includes(searchId)) return false;
+      if (layer && obj["Layer Height (mm)"] !== Number(layer)) return false;
+      if (temp && obj["Extrusion Temp (°C)"] !== Number(temp)) return false;
+      if (infill && obj["Infill Density (%)"] !== Number(infill)) return false;
+      if (fan && obj["Fan Speed (%)"] !== Number(fan)) return false;
+      if (speed && obj["Outer Wall Speed (mm/s)"] !== Number(speed)) return false;
+      if (wall && obj["Wall Thickness (mm)"] !== Number(wall)) return false;
+      if (bed && obj["Bed Temp (°C)"] !== Number(bed)) return false;
+      return true;
+    });
+
+    renderObjectList();
+    updateObjectCount();
+  }
+
+  function updateObjectCount() {
+    const badge = document.getElementById("objectCount");
+    badge.textContent = `${filteredObjects.length} object${filteredObjects.length === 1 ? "" : "s"}`;
+  }
+
+  function renderObjectList() {
+    const body = document.getElementById("objectListBody");
+    body.innerHTML = "";
+
+    filteredObjects.forEach((obj, index) => {
+      const row = document.createElement("div");
+      row.className = "object-row";
+      if (selectedObject && selectedObject.ID === obj.ID) {
+        row.classList.add("selected");
+      }
+      row.dataset.index = index;
+
+      const col1 = document.createElement("div");
+      col1.textContent = obj.ID;
+
+      const col2 = document.createElement("div");
+      const badge = document.createElement("span");
+      badge.className = "badge-param";
+      const dot = document.createElement("span");
+      dot.className = "badge-dot";
+      badge.appendChild(dot);
+
+      const text = document.createElement("span");
+      text.textContent = [
+        `LH ${obj["Layer Height (mm)"].toFixed(2)} mm`,
+        `ET ${obj["Extrusion Temp (°C)"]} °C`,
+        `OWS ${obj["Outer Wall Speed (mm/s)"]} mm/s`,
+        `INF ${obj["Infill Density (%)"]}%`,
+        `WT ${obj["Wall Thickness (mm)"].toFixed(2)} mm`,
+        `BT ${obj["Bed Temp (°C)"]} °C`,
+        `FS ${obj["Fan Speed (%)"]}%`
+      ].join(" • ");
+      badge.appendChild(text);
+      col2.appendChild(badge);
+
+      row.appendChild(col1);
+      row.appendChild(col2);
+
+      row.addEventListener("click", () => onObjectRowClick(obj.ID));
+
+      body.appendChild(row);
+    });
+  }
+
+  function onObjectRowClick(id) {
+    const obj = allObjects.find(o => o.ID === id);
+    if (!obj) return;
+    selectedObject = obj;
+
+    // Highlight selection
+    document.querySelectorAll(".object-row").forEach(row => {
+      row.classList.toggle("selected", row.firstChild.textContent === id);
+    });
+
+    populateDetails(obj);
+    resetGraphStatus();
+    populateAnglesForObject(obj.ID);
+  }
+
+  function populateDetails(obj) {
+    document.getElementById("selectedId").textContent = obj.ID;
+    document.getElementById("selectedSummary").textContent =
+      "Printing parameters loaded. Choose an angle to view surface roughness.";
+
+    document.getElementById("detailLayer").textContent =
+      `${obj["Layer Height (mm)"].toFixed(2)} mm`;
+    document.getElementById("detailTemp").textContent =
+      `${obj["Extrusion Temp (°C)"]} °C`;
+    document.getElementById("detailSpeed").textContent =
+      `${obj["Outer Wall Speed (mm/s)"]} mm/s`;
+    document.getElementById("detailInfill").textContent =
+      `${obj["Infill Density (%)"]} %`;
+    document.getElementById("detailWall").textContent =
+      `${obj["Wall Thickness (mm)"].toFixed(2)} mm`;
+    document.getElementById("detailBed").textContent =
+      `${obj["Bed Temp (°C)"]} °C`;
+    document.getElementById("detailFan").textContent =
+      `${obj["Fan Speed (%)"]} %`;
+
+    // Reset report link until an angle is chosen
+    updateReportLink(null);
+  }
+
+  function resetGraphStatus() {
+    setGraphStatus("Waiting for angle selection…", "idle");
+    document.getElementById("angleSelect").disabled = true;
+    document.getElementById("btnLoadProfile").disabled = true;
+    document.getElementById("angleSelect").innerHTML =
+      '<option value="">Select angle</option>';
+    updateReportLink(null);
+
+    if (profileChart) {
+      profileChart.destroy();
+      profileChart = null;
+    }
+  }
+
+  async function populateAnglesForObject(objectId) {
+    const angleSelect = document.getElementById("angleSelect");
+    angleSelect.disabled = true;
+    setGraphStatus("Scanning available inclination angles…", "idle");
+
+    const foundAngles = [];
+
+    // We test a list of candidate angles by attempting to fetch the txt file.
+    await Promise.all(
+      candidateAngles.map(async (angle) => {
+        const path = `${MAHR_BASE_URL}/${objectId}/${objectId}-${angle}.txt`;
+        try {
+          const res = await fetch(path, { method: "GET" });
+          if (res.ok) {
+            foundAngles.push(angle);
+          }
+        } catch (err) {
+          // Ignore errors; file might not exist or directory listing may not be allowed.
+        }
+      })
+    );
+
+    angleSelect.innerHTML = '<option value="">Select angle</option>';
+
+    if (foundAngles.length === 0) {
+      setGraphStatus("No profile files found for this object.", "error");
+      angleSelect.disabled = true;
+      document.getElementById("btnLoadProfile").disabled = true;
+      updateReportLink(null);
+      return;
+    }
+
+    foundAngles.sort((a, b) => a - b).forEach((angle) => {
+      const opt = document.createElement("option");
+      opt.value = angle;
+      opt.textContent = `${angle}°`;
+      angleSelect.appendChild(opt);
+    });
+
+    angleSelect.disabled = false;
+    setGraphStatus("Angles detected. Select one and load the profile.", "idle");
+  }
+
+  function updateReportLink(angle) {
+    const reportLink = document.getElementById("reportLink");
+    if (!selectedObject || !angle) {
+      reportLink.href = "#";
+      reportLink.classList.add("disabled");
+      reportLink.setAttribute("aria-disabled", "true");
+      return;
+    }
+
+    reportLink.href = `${MAHR_BASE_URL}/${selectedObject.ID}/${selectedObject.ID}-${angle}.pdf`;
+    reportLink.classList.remove("disabled");
+    reportLink.removeAttribute("aria-disabled");
+  }
+
+  async function loadProfileTxt(objectId, angle) {
+    const path = `${MAHR_BASE_URL}/${objectId}/${objectId}-${angle}.txt`;
+    setGraphStatus("Loading profile data…", "idle");
+    try {
+      const response = await fetch(path);
+      if (!response.ok) {
+        throw new Error("File not found or cannot be loaded.");
+      }
+      const text = await response.text();
+      const { xValues, yValues } = parseProfileHistory(text);
+
+      if (!xValues.length || !yValues.length) {
+        throw new Error("No profile values detected in the file.");
+      }
+
+      renderChart(xValues, yValues, objectId, angle);
+      setGraphStatus(`Profile loaded for ${objectId} at ${angle}°.`, "ok");
+    } catch (err) {
+      console.error(err);
+      setGraphStatus("Error loading or parsing profile file.", "error");
+      alert(`Unable to load or parse ${path}.\n\n${err.message}`);
+    }
+  }
+
+  function parseProfileHistory(fileContent) {
+    const lines = fileContent.split(/\r?\n/);
+    const xValues = [];
+    const yValues = [];
+
+    let inProfileSection = false;
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+
+      if (trimmed === "[PROFILE_VALUES]") {
+        inProfileSection = true;
+        continue;
+      }
+      if (!inProfileSection) continue;
+
+      // Example: 0=0.000000 -0.013992 0
+      const parts = trimmed.split("=");
+      if (parts.length !== 2) continue;
+
+      const valuesStr = parts[1].trim();
+      const valueParts = valuesStr.split(/\s+/);
+      if (valueParts.length < 2) continue;
+
+      const x = parseFloat(valueParts[0]);
+      const y = parseFloat(valueParts[1]);
+
+      if (Number.isFinite(x) && Number.isFinite(y)) {
+        xValues.push(x);
+        yValues.push(y);
+      }
+    }
+
+    return { xValues, yValues };
+  }
+
+  function renderChart(xValues, yValues, objectId, angle) {
+    const ctx = document.getElementById("profileChart").getContext("2d");
+    const theme = getChartTheme();
+
+    const points = xValues.map((x, i) => ({
+      x,
+      y: yValues[i]
+    }));
+
+    if (profileChart) {
+      profileChart.destroy();
+    }
+
+    profileChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        datasets: [
+          {
+            label: `Profile at ${angle}°`,
+            data: points,
+            parsing: false, // we already provide x/y
+            tension: 0.1,
+            pointRadius: 0,
+            borderWidth: 1.5,
+            borderColor: theme.accent
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: "index",
+          intersect: false
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: theme.text,
+              font: { size: 11 }
+            }
+          },
+          title: {
+            display: true,
+            text: `Surface Roughness of 3D Printed Object – ${objectId}`,
+            color: theme.text,
+            font: {
+              size: 14,
+              weight: "500"
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const x = ctx.parsed.x;
+                const y = ctx.parsed.y;
+                return `X = ${x.toFixed(4)} mm, Y = ${y.toFixed(4)} mm`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: "linear",
+            title: {
+              display: true,
+              text: "X [mm]",
+              color: theme.textSoft,
+              font: { size: 12 }
+            },
+            ticks: {
+              color: theme.textSoft,
+              font: { size: 10 }
+            },
+            grid: {
+              color: theme.grid
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: "Y [mm]",
+              color: theme.textSoft,
+              font: { size: 12 }
+            },
+            ticks: {
+              color: theme.textSoft,
+              font: { size: 10 }
+            },
+            grid: {
+              color: theme.grid
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function setGraphStatus(text, mode) {
+    const dot = document.getElementById("graphStatusDot");
+    const label = document.getElementById("graphStatusText");
+
+    dot.className = "graph-status-dot"; // reset
+    if (mode === "ok") dot.classList.add("ok");
+    else if (mode === "error") dot.classList.add("error");
+    label.textContent = text;
+  }
+</script>
+</body>
+</html>

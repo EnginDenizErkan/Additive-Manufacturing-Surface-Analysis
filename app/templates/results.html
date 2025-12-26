@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Model Performance – Surface Roughness Prediction</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- ECharts CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-card: #0f172a;
+      --bg-card-soft: #111827;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.12);
+      --accent-2: #a855f7;
+      --text: #e5e7eb;
+      --text-soft: #9ca3af;
+      --border: #1f2937;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --radius-xl: 18px;
+      --radius-lg: 14px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.55);
+      --shadow-subtle: 0 10px 30px rgba(15, 23, 42, 0.95);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #0b1120 0, #020617 50%, #000 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 18px;
+    }
+
+    .page { max-width: 1280px; margin: 0 auto; }
+
+    /* HEADER */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 22px;
+      padding: 18px 22px;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border);
+      background: linear-gradient(120deg, #020617 0%, #020617 40%, #0b1120 100%);
+      box-shadow: var(--shadow-soft);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(18px);
+    }
+
+    .header-left { display: flex; align-items: center; gap: 16px; }
+
+    .logo-circle {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(circle at 30% 10%, #22d3ee 0, #0ea5e9 25%, #0b1120 60%, #020617 100%);
+      box-shadow: 0 0 30px rgba(56, 189, 248, 0.7);
+      font-weight: 700;
+      font-size: 22px;
+      letter-spacing: 0.18em;
+      color: #f9fafb;
+      text-transform: uppercase;
+    }
+
+    .title-block h1 {
+      font-size: 1.5rem;
+      letter-spacing: 0.03em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .title-pill {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(148, 163, 184, 0.08);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      color: var(--text-soft);
+    }
+
+    .title-block p {
+      font-size: 0.85rem;
+      color: var(--text-soft);
+      margin-top: 4px;
+    }
+
+    .header-right { display: flex; align-items: center; gap: 10px; }
+
+    .tag {
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      background: var(--accent-soft);
+      color: #e0f2fe;
+      font-size: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .tag-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 14px rgba(56, 189, 248, 1);
+    }
+
+    /* MAIN LAYOUT */
+    .grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 960px) {
+      .grid { grid-template-columns: 1fr; }
+      .header { flex-direction: column; align-items: flex-start; }
+    }
+
+    /* SIDEBAR CARD */
+    .card {
+      border-radius: var(--radius-xl);
+      background: radial-gradient(circle at top, #111827 0, #020617 60%);
+      border: 1px solid var(--border);
+      padding: 16px 16px 18px;
+      box-shadow: var(--shadow-subtle);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 55%),
+                  radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.12), transparent 55%);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .card-inner { position: relative; z-index: 1; }
+
+    .card-header {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .card-header h2 {
+      font-size: 0.95rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #f9fafb;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-header h2 span.dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent-2);
+      box-shadow: 0 0 18px rgba(168, 85, 247, 0.8);
+    }
+
+    .badge-soft {
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 0.7rem;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--text-soft);
+    }
+
+    label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-soft);
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      background-color: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      font-size: 0.78rem;
+      outline: none;
+      transition: border-color 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.5);
+    }
+
+    .field-group { margin: 8px 0 10px; }
+
+    .legend-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+      font-size: 0.73rem;
+      color: var(--text-soft);
+      flex-wrap: wrap;
+    }
+
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+
+    .legend-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+    }
+    .legend-dot.green { border-color: var(--success); }
+    .legend-dot.blue  { border-color: var(--accent); }
+    .legend-dot.red   { border-color: var(--danger); }
+
+    .gauge-container {
+      margin-top: 14px;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: radial-gradient(circle at top, #020617 0, #020617 50%, #020617 100%);
+    }
+
+    .gauge { width: 100%; height: 220px; }
+
+    .metric-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .metric-card {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      padding: 8px 10px;
+      font-size: 0.78rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .metric-card-label {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-soft);
+      font-size: 0.7rem;
+    }
+
+    .metric-card-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: baseline;
+      gap: 3px;
+    }
+
+    .metric-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: var(--text-soft);
+    }
+
+    .metric-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+    }
+
+    .metric-dot--good {
+      background: var(--success);
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.8);
+    }
+    .metric-dot--warn {
+      background: var(--warning);
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.8);
+    }
+    .metric-dot--bad {
+      background: var(--danger);
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
+    }
+
+    .metric-bar {
+      width: 100%;
+      height: 7px;
+      border-radius: var(--radius-pill);
+      background: rgba(148, 163, 184, 0.18);
+      overflow: hidden;
+      margin-top: 3px;
+    }
+
+    .metric-bar-fill {
+      height: 100%;
+      border-radius: var(--radius-pill);
+      background: linear-gradient(90deg, #38bdf8, #8b5cf6);
+      width: 30%;
+      transition: width 0.2s ease;
+    }
+
+    .metric-bar-label {
+      font-size: 0.72rem;
+      color: var(--text-soft);
+      margin-top: 4px;
+    }
+
+    /* MAIN CONTENT RIGHT */
+    .right-column { display: flex; flex-direction: column; gap: 16px; }
+
+    .section {
+      border-radius: var(--radius-xl);
+      background: radial-gradient(circle at top, #020617 0, #020617 50%, #020617 100%);
+      border: 1px solid var(--border);
+      padding: 14px 16px 16px;
+      box-shadow: var(--shadow-subtle);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .section::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.09), transparent 60%),
+                  radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.09), transparent 60%);
+      pointer-events: none;
+    }
+
+    .section-inner { position: relative; z-index: 1; }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .section-title { display: flex; flex-direction: column; gap: 2px; }
+
+    .section-title h2 {
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    .section-title p { font-size: 0.8rem; color: var(--text-soft); }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 0.7rem;
+    }
+
+    .chip {
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background-color: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--text-soft);
+    }
+
+    .chart-row {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    @media (max-width: 1040px) {
+      .chart-row { grid-template-columns: 1fr; }
+    }
+
+    .chart-card {
+      border-radius: var(--radius-lg);
+      background: radial-gradient(circle at top, #020617 0, #020617 50%, #020617 100%);
+      border: 1px solid rgba(31, 41, 55, 1);
+      padding: 8px 10px 10px;
+      min-height: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .chart-card--radar .chart { height: 380px; }
+    .chart-card--radar { padding-bottom: 36px; }
+
+    .chart-title {
+      font-size: 0.8rem;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .chart-subtitle { font-size: 0.75rem; color: var(--text-soft); }
+
+    .chart { width: 100%; height: 320px; }
+
+    .table-wrapper {
+      margin-top: 10px;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(31, 41, 55, 1);
+      background-color: rgba(15, 23, 42, 0.98);
+      overflow: hidden;
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+
+    thead {
+      background: linear-gradient(90deg, rgba(15, 23, 42, 1), rgba(15, 23, 42, 0.9));
+    }
+
+    th, td {
+      padding: 7px 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+      white-space: nowrap;
+    }
+
+    th {
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-soft);
+    }
+
+    tbody tr:nth-child(even) { background-color: rgba(15, 23, 42, 0.9); }
+    tbody tr:hover { background-color: rgba(15, 23, 42, 1); }
+
+    .metric-chip {
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      font-size: 0.7rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .metric-chip--good {
+      background-color: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.7);
+      color: #bbf7d0;
+    }
+
+    .metric-chip--medium {
+      background-color: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.8);
+      color: #bfdbfe;
+    }
+
+    .metric-chip--bad {
+      background-color: rgba(248, 113, 113, 0.15);
+      border: 1px solid rgba(248, 113, 113, 0.8);
+      color: #fecaca;
+    }
+
+    /* METRIC DEFINITIONS */
+    .metrics-def-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 840px) {
+      .metrics-def-grid { grid-template-columns: 1fr; }
+    }
+
+    .metrics-def-card {
+      border-radius: var(--radius-lg);
+      background-color: rgba(15, 23, 42, 0.98);
+      border: 1px solid rgba(31, 41, 55, 1);
+      padding: 10px 11px;
+      font-size: 0.76rem;
+      line-height: 1.6;
+    }
+
+    .metrics-def-title {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 0.74rem;
+      color: var(--text-soft);
+      margin-bottom: 3px;
+    }
+
+    .metrics-def-main { font-weight: 600; margin-bottom: 4px; }
+
+    .metrics-def-body span.formula {
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.72rem;
+      color: #e5e7eb;
+    }
+
+    /* SHAP SECTION */
+    .shap-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 840px) {
+      .shap-grid { grid-template-columns: 1fr; }
+    }
+
+    .shap-card {
+      border-radius: var(--radius-lg);
+      background-color: rgba(15, 23, 42, 0.98);
+      border: 1px solid rgba(31, 41, 55, 1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 180px;
+    }
+
+    .shap-card-header {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(31, 41, 55, 1);
+      font-size: 0.78rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .shap-card-header span.label {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-soft);
+    }
+
+    .shap-card-header span.badge {
+      font-size: 0.7rem;
+      padding: 4px 9px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      color: var(--text-soft);
+    }
+
+    .shap-card-body {
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    @media (max-width: 720px) {
+      .shap-card-body { grid-template-columns: 1fr; }
+    }
+
+    .shap-image-wrapper {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px dashed rgba(148, 163, 184, 0.6);
+      min-height: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 1) 0, rgba(15, 23, 42, 1) 60%, #020617 100%);
+    }
+
+    .shap-image-wrapper img {
+      max-width: 100%;
+      display: block;
+      cursor: zoom-in;
+      transition: transform 0.2s ease;
+    }
+
+    .shap-image-wrapper img:hover { transform: scale(1.02); }
+
+    .shap-text {
+      font-size: 0.75rem;
+      color: var(--text-soft);
+      line-height: 1.5;
+    }
+
+    .shap-text strong { color: #e5e7eb; }
+
+    .footer-note {
+      margin-top: 6px;
+      font-size: 0.7rem;
+      color: var(--text-soft);
+      line-height: 1.6;
+    }
+
+    .footer-note ul { margin-top: 4px; padding-left: 18px; }
+    .footer-note li { margin-bottom: 2px; }
+
+    body.lightbox-open { overflow: hidden; }
+
+    .image-lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.88);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+      z-index: 50;
+      padding: 24px;
+    }
+
+    .image-lightbox.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .image-lightbox img {
+      max-width: 92vw;
+      max-height: 88vh;
+      border-radius: 14px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      background: #0b1120;
+    }
+
+    .image-lightbox-close {
+      position: absolute;
+      top: 18px;
+      right: 20px;
+      border: none;
+      background: rgba(15, 23, 42, 0.85);
+      color: #f9fafb;
+      border-radius: 999px;
+      width: 36px;
+      height: 36px;
+      cursor: pointer;
+      font-size: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <!-- TOP HEADER -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo-circle">ML</div>
+        <div class="title-block">
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <h1>
+              Model Performance
+              <span class="title-pill">3D Printed Surface Roughness</span>
+            </h1>
+          </div>
+          <p>
+            Comparative view of all machine learning models, error metrics and explainability (SHAP) insights for surface roughness prediction.
+          </p>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="tag">
+          <span class="tag-dot"></span>
+          <span>Interactive dashboard</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="grid">
+      <!-- LEFT SIDEBAR: MODEL & GAUGE -->
+      <aside class="card">
+        <div class="card-inner">
+          <div class="card-header">
+            <h2><span class="dot"></span> Active Model</h2>
+            <span class="badge-soft">Single-model focus</span>
+          </div>
+
+          <div class="field-group">
+            <label for="modelSelect">Select model</label>
+            <select id="modelSelect"></select>
+          </div>
+
+          <div class="field-group">
+            <label for="metricForGauge">Gauge metric</label>
+            <select id="metricForGauge">
+              <option value="mape">MAPE (%)</option>
+              <option value="mae">MAE</option>
+            </select>
+          </div>
+
+          <div class="legend-row">
+            <div class="legend-item">
+              <span class="legend-dot green"></span>
+              <span>Green: highly successful</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot blue"></span>
+              <span>Blue: acceptable</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot red"></span>
+              <span>Red: unsatisfactory</span>
+            </div>
+          </div>
+
+          <div class="gauge-container">
+            <div id="gaugeChart" class="gauge"></div>
+          </div>
+
+          <div class="metric-cards">
+            <div class="metric-card">
+              <div class="metric-card-label">MAPE</div>
+              <div class="metric-card-value">
+                <span id="mapeValue">-</span><span>%</span>
+              </div>
+              <div class="metric-indicator">
+                <span id="mapeIndicatorDot" class="metric-dot"></span>
+                <span id="mapeIndicatorText">-</span>
+              </div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-label">MAE</div>
+              <div class="metric-card-value">
+                <span id="maeValue">-</span>
+              </div>
+              <div class="metric-bar">
+                <div id="maeBar" class="metric-bar-fill"></div>
+              </div>
+              <div class="metric-bar-label">Lower is better vs. other models</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-label">R²</div>
+              <div class="metric-card-value">
+                <span id="r2Value">-</span>
+              </div>
+              <div class="metric-bar">
+                <div id="r2Bar" class="metric-bar-fill"></div>
+              </div>
+              <div class="metric-bar-label">Closer to 1.0 is better</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- RIGHT COLUMN -->
+      <div class="right-column">
+        <!-- COMPARATIVE CHARTS -->
+        <section class="section">
+          <div class="section-inner">
+            <div class="section-header">
+              <div class="section-title">
+                <h2>Comparative Metrics</h2>
+                <p>Radar + bar charts for up to six models.</p>
+              </div>
+              <div class="chip-row">
+                <div class="chip">MAPE, MAE, R²</div>
+                <div class="chip">Up to 6 models</div>
+                <div class="chip">Dynamic highlighting</div>
+              </div>
+            </div>
+
+            <div class="chart-row">
+              <div class="chart-card chart-card--radar">
+                <div class="chart-title">Radar profile</div>
+                <div class="chart-subtitle">
+                  Metrics are normalised to 0–1 for comparison (higher = better).
+                </div>
+                <div id="radarChart" class="chart"></div>
+              </div>
+              <div class="chart-card">
+                <div class="chart-title">Primary comparison metric</div>
+                <div class="chart-subtitle" style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                  <span>Selected metric vs. models</span>
+                  <select id="metricForBar" style="width:auto; padding:4px 8px; font-size:0.72rem;">
+                    <option value="mape">MAPE (%)</option>
+                    <option value="mae">MAE</option>
+                    <option value="r2">R²</option>
+                  </select>
+                </div>
+                <div id="barChart" class="chart"></div>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Model</th>
+                    <th>Type</th>
+                    <th>MAPE (%)</th>
+                    <th>MAE</th>
+                    <th>R²</th>
+                    <th>Quality band (MAPE)</th>
+                  </tr>
+                </thead>
+                <tbody id="metricsTableBody">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- METRIC DEFINITIONS / INTERPRETATION -->
+        <section class="section">
+          <div class="section-inner">
+            <div class="section-header">
+              <div class="section-title">
+                <h2>Metric Definitions</h2>
+                <p>How to read the error metrics for surface roughness prediction.</p>
+              </div>
+              <div class="chip-row">
+                <div class="chip">Target in µm (e.g. Ra, Rq)</div>
+                <div class="chip">Regression performance</div>
+              </div>
+            </div>
+
+            <div class="metrics-def-grid">
+              <div class="metrics-def-card">
+                <div class="metrics-def-title">MAPE</div>
+                <div class="metrics-def-main">Mean Absolute Percentage Error</div>
+                <div class="metrics-def-body">
+                  <span class="formula">
+                    MAPE = (1/n) Σ |(y<sub>i</sub> − ŷ<sub>i</sub>) / y<sub>i</sub>| × 100
+                  </span>
+                  <br />
+                  Measures average relative error as a percentage. In this dashboard:
+                  <strong>0–10%</strong> → highly successful (green),
+                  <strong>10–20%</strong> → successful (blue),
+                  <strong>&gt;20%</strong> → unsuccessful (red).
+                  For surface roughness, low MAPE means predicted Ra/Rq is very close to measured values across all printed surfaces.
+                </div>
+              </div>
+
+              <div class="metrics-def-card">
+                <div class="metrics-def-title">MAE</div>
+                <div class="metrics-def-main">Mean Absolute Error</div>
+                <div class="metrics-def-body">
+                  <span class="formula">
+                    MAE = (1/n) Σ |y<sub>i</sub> − ŷ<sub>i</sub>|
+                  </span>
+                  <br />
+                  Gives the average absolute deviation in the same units as the target (e.g. µm).
+                  Easier to interpret physically: “On average, the model is off by X µm”.
+                  Here we colour-code MAE on the gauge relative to the best and worst models:
+                  The lowest errors are green, intermediate are blue, and large errors are red.
+                </div>
+              </div>
+
+              <div class="metrics-def-card">
+                <div class="metrics-def-title">R²</div>
+                <div class="metrics-def-main">Coefficient of Determination</div>
+                <div class="metrics-def-body">
+                  <span class="formula">
+                    R² = 1 − (Σ (y<sub>i</sub> − ŷ<sub>i</sub>)² / Σ (y<sub>i</sub> − ȳ)²)
+                  </span>
+                  <br />
+                  Indicates how much of the variance in surface roughness is explained by the model (range 0–1).
+                  Values close to <strong>1.0</strong> mean the model captures most variability across different process parameters.
+                  In the radar and bar charts, higher R² corresponds to better overall explanatory power.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SHAP / EXPLAINABILITY -->
+        <section class="section">
+          <div class="section-inner">
+            <div class="section-header">
+              <div class="section-title">
+                <h2>Data Explainability (SHAP)</h2>
+                <p>Understanding how printing parameters influence the model prediction of surface roughness (Ra).</p>
+              </div>
+              <div class="chip-row">
+                <div class="chip">Global ranking</div>
+                <div class="chip">Nonlinear effects</div>
+                <div class="chip">Angle–process interaction</div>
+              </div>
+            </div>
+
+            <div class="shap-grid">
+              <!-- SS1 -->
+              <article class="shap-card">
+                <div class="shap-card-header">
+                  <span class="label">SHAP summary plot</span>
+                  <span class="badge">Beeswarm (global)</span>
+                </div>
+                <div class="shap-card-body">
+                  <div class="shap-image-wrapper">
+                    <img src="/static/shap1.png" alt="SHAP summary plot (beeswarm) for Ra prediction" />
+                  </div>
+                  <div class="shap-text">
+                    <strong>What this shows:</strong> Each dot corresponds to one measured surface (one sample).
+                    The <strong>x-axis</strong> is the SHAP value, i.e. the signed contribution of that feature to the predicted
+                    roughness for that sample. Features are sorted from top to bottom by their overall impact.
+                    Dot colour encodes the <strong>feature magnitude</strong> (low to high), allowing you to see whether
+                    high or low values tend to increase the predicted Ra.
+                  </div>
+                </div>
+              </article>
+
+              <!-- SS2 -->
+              <article class="shap-card">
+                <div class="shap-card-header">
+                  <span class="label">SHAP dependence plot</span>
+                  <span class="badge">Surface angle effect</span>
+                </div>
+                <div class="shap-card-body">
+                  <div class="shap-image-wrapper">
+                    <img src="/static/shap2.png" alt="SHAP dependence plot for Surface Angle with Layer Height interaction" />
+                  </div>
+                  <div class="shap-text">
+                    <strong>What this shows:</strong> The <strong>x-axis</strong> is the surface inclination angle, and the
+                    <strong>y-axis</strong> is the SHAP contribution of the angle to the predicted Ra.
+                    The relationship is <strong>nonlinear</strong>: Some angle regions push the prediction upward
+                    (positive SHAP) while others push it downward (negative SHAP).
+                    Color represents <strong>layer height</strong>, highlighting an interaction where the same angle can have
+                    different contributions under different layer-height settings.
+                  </div>
+                </div>
+              </article>
+
+              <!-- SS3 -->
+              <article class="shap-card">
+                <div class="shap-card-header">
+                  <span class="label">Global importance</span>
+                  <span class="badge">Mean |SHAP| ranking</span>
+                </div>
+                <div class="shap-card-body">
+                  <div class="shap-image-wrapper">
+                    <img src="/static/shap3.png" alt="Global feature importance using mean absolute SHAP values" />
+                  </div>
+                  <div class="shap-text">
+                    <strong>What this shows:</strong> Average absolute SHAP values summarise overall influence,
+                    regardless of sign. Larger bars indicate features that, on average, change predictions more strongly.
+                    In this result, <strong>surface angle</strong> is the dominant driver, followed by <strong>layer height</strong>,
+                    while the remaining process parameters exhibit comparatively smaller global effects within the studied ranges.
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <div class="footer-note">
+              <strong>How to interpret SHAP values on this page:</strong>
+              <ul>
+                <li>
+                  <strong>Sign:</strong> Positive SHAP values push the predicted roughness <em>up</em> (rougher surface),
+                  while negative values push it <em>down</em> (smoother surface).
+                </li>
+                <li>
+                  <strong>Magnitude:</strong> Larger |SHAP| means a stronger influence for that specific sample.
+                  Small |SHAP| indicates the model is relatively insensitive to that feature at that point.
+                </li>
+                <li>
+                  <strong>Colour:</strong> In the beeswarm and dependence plots, colour encodes a feature value
+                  (e.g., low-to-high). Colour patterns help identify whether higher (or lower) settings tend to increase Ra.
+                </li>
+                <li>
+                  <strong>Global vs. conditional:</strong> The summary plot ranks features globally, whereas the dependence plot
+                  shows how a single feature’s effect changes across its domain and under interaction with another feature.
+                </li>
+                <li>
+                  <strong>Engineering implication:</strong> Combining these explanations with performance metrics supports
+                  defensible statements about which parameters and ranges most strongly drive predicted roughness behaviour.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div id="imageLightbox" class="image-lightbox" aria-hidden="true">
+    <button type="button" class="image-lightbox-close" aria-label="Close image">X</button>
+    <img id="imageLightboxImg" src="" alt="" />
+  </div>
+
+  <script>
+    /*
+      ======================================
+      RESULTS
+      ======================================
+
+    */
+    const modelsData = [
+      { name: "Random Forest",     type: "Tree-based ensemble",         mape: 13.7, mae: 2.257, r2: 0.849 },
+      { name: "Decision Tree",     type: "Single tree model",           mape: 12.4, mae: 2.123, r2: 0.847 },
+      { name: "Gradient Boosting", type: "Boosting ensemble",           mape: 13.8, mae: 2.254, r2: 0.839 },
+      { name: "XGBoost",           type: "Extreme gradient boosting",   mape: 13.9, mae: 2.273, r2: 0.835 },
+      { name: "CatBoost",          type: "Categorical boosting",        mape: 14.7, mae: 2.471, r2: 0.817 },
+      { name: "CGAN+MLP",          type: "Generative + MLP hybrid",     mape: 8.4,  mae: 1.616, r2: 0.900 }
+    ];
+
+    function getMAPEBand(mape) {
+      if (mape === null || mape === undefined || isNaN(mape)) return { label: "Unknown", className: "metric-chip--bad" };
+      if (mape < 10) return { label: "Highly successful", className: "metric-chip--good" };
+      if (mape < 20) return { label: "Successful", className: "metric-chip--medium" };
+      return { label: "Unsuccessful", className: "metric-chip--bad" };
+    }
+
+    function formatNumber(value, decimals = 2) {
+      if (value === null || value === undefined || isNaN(value)) return "-";
+      return Number(value).toFixed(decimals);
+    }
+
+    function getRelativeWidth(metric, value, higherIsBetter = false) {
+      if (value === null || value === undefined || isNaN(value)) return 0;
+
+      const values = modelsData
+        .map((m) => m[metric])
+        .filter((v) => v !== null && v !== undefined && !isNaN(v));
+
+      if (!values.length) return 0;
+
+      const minVal = Math.min(...values);
+      const maxVal = Math.max(...values);
+      if (maxVal === minVal) return 100;
+
+      let ratio;
+      if (higherIsBetter) ratio = (value - minVal) / (maxVal - minVal);
+      else ratio = (maxVal - value) / (maxVal - minVal);
+
+      const clamped = Math.max(0, Math.min(1, ratio));
+      return Math.max(8, Math.round(clamped * 100));
+    }
+
+    const modelSelect = document.getElementById("modelSelect");
+    const metricForBarSelect = document.getElementById("metricForBar");
+    const metricForGaugeSelect = document.getElementById("metricForGauge");
+    const metricsTableBody = document.getElementById("metricsTableBody");
+
+    modelsData.forEach((model, index) => {
+      const opt = document.createElement("option");
+      opt.value = index;
+      opt.textContent = model.name;
+      modelSelect.appendChild(opt);
+    });
+
+    function populateTable() {
+      metricsTableBody.innerHTML = "";
+      modelsData.forEach((model) => {
+        const tr = document.createElement("tr");
+        const band = getMAPEBand(model.mape);
+
+        tr.innerHTML = `
+          <td>${model.name}</td>
+          <td>${model.type}</td>
+          <td>${formatNumber(model.mape, 1)}</td>
+          <td>${formatNumber(model.mae, 3)}</td>
+          <td>${formatNumber(model.r2, 3)}</td>
+          <td>
+            <span class="metric-chip ${band.className}">
+              • ${band.label}
+            </span>
+          </td>
+        `;
+        metricsTableBody.appendChild(tr);
+      });
+    }
+    populateTable();
+
+    const gaugeChart = echarts.init(document.getElementById("gaugeChart"));
+    const radarChart = echarts.init(document.getElementById("radarChart"));
+    const barChart = echarts.init(document.getElementById("barChart"));
+
+    function computeRadarData() {
+      const metrics = ["mape", "mae", "r2"];
+      const maxValues = {
+        mape: Math.max(...modelsData.map((m) => m.mape || 0)) || 1,
+        mae:  Math.max(...modelsData.map((m) => m.mae  || 0)) || 1,
+        r2: 1
+      };
+
+      const indicator = metrics.map((metric) => {
+        let name;
+        if (metric === "mape") name = "MAPE";
+        else if (metric === "mae") name = "MAE";
+        else if (metric === "r2") name = "R²";
+        return { name, max: 1 };
+      });
+
+      const series = modelsData.map((model) => ({
+        name: model.name,
+        value: metrics.map((metric) => {
+          const raw = model[metric] || 0;
+          if (metric === "r2") {
+            const clipped = Math.max(0, Math.min(raw, 1));
+            return clipped;
+          } else {
+            const max = maxValues[metric];
+            const norm = max > 0 ? raw / max : 0;
+            return 1 - Math.min(norm, 1);
+          }
+        })
+      }));
+
+      return { indicator, series };
+    }
+
+    function updateRadarChart() {
+      const { indicator, series } = computeRadarData();
+
+      const option = {
+        tooltip: {
+          trigger: "item",
+          formatter: (params) => {
+            const valueList = Array.isArray(params?.value) ? params.value : [];
+            if (!valueList.length) return params?.seriesName || "";
+            const metricLabels = indicator.map((item) => item.name);
+            const rows = valueList.map((val, idx) => `${metricLabels[idx]}: ${formatNumber(val, 2)}`);
+            return `${params?.name || ""}<br/>${rows.join("<br/>")}`;
+          }
+        },
+        legend: {
+          type: "plain",
+          orient: "horizontal",
+          width: "96%",
+          left: "center",
+          bottom: 3,
+          data: modelsData.map((m) => m.name),
+          itemGap: 10,
+          textStyle: { color: "#9ca3af", fontSize: 10 }
+        },
+        radar: {
+          center: ["50%", "42%"],
+          radius: "55%",
+          indicator,
+          axisName: { color: "#9ca3af", fontSize: 11 },
+          splitLine: { lineStyle: { color: ["rgba(148, 163, 184, 0.35)"] } },
+          splitArea: {
+            areaStyle: {
+              color: [
+                "rgba(15, 23, 42, 1)",
+                "rgba(15, 23, 42, 0.95)",
+                "rgba(15, 23, 42, 0.9)",
+                "rgba(15, 23, 42, 0.85)"
+              ]
+            }
+          },
+          axisLine: { lineStyle: { color: "rgba(148, 163, 184, 0.5)" } }
+        },
+        series: [
+          {
+            type: "radar",
+            data: series,
+            areaStyle: { opacity: 0.1 },
+            lineStyle: { width: 2 },
+            symbolSize: 3
+          }
+        ]
+      };
+
+      radarChart.setOption(option);
+    }
+
+    function updateBarChart() {
+      const metric = metricForBarSelect.value;
+      const labels = modelsData.map((m) => m.name);
+      const values = modelsData.map((m) => m[metric]);
+
+      const metricNames = { mape: "MAPE (%)", mae: "MAE", r2: "R²" };
+
+      const option = {
+        tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+        grid: { left: "3%", right: "3%", bottom: "8%", top: "8%", containLabel: true },
+        xAxis: {
+          type: "value",
+          axisLine: { lineStyle: { color: "#9ca3af" } },
+          splitLine: { lineStyle: { color: "rgba(31, 41, 55, 1)" } }
+        },
+        yAxis: {
+          type: "category",
+          data: labels,
+          axisLine: { lineStyle: { color: "#9ca3af" } },
+          axisLabel: { fontSize: 10 }
+        },
+        series: [
+          {
+            name: metricNames[metric],
+            type: "bar",
+            data: values,
+            barWidth: "55%",
+            itemStyle: { borderRadius: [4, 14, 14, 4] }
+          }
+        ]
+      };
+
+      barChart.setOption(option);
+    }
+
+    function updateGaugeChart() {
+      const modelIndex = Number(modelSelect.value) || 0;
+      const metric = metricForGaugeSelect.value;
+      const model = modelsData[modelIndex];
+
+      let maxValue;
+      let value = model[metric] || 0;
+      let unit = "";
+      let title = "";
+      let colorSegments = [];
+
+      if (metric === "mape") {
+        unit = "%";
+        title = "MAPE";
+        maxValue = Math.max(100, (Math.ceil(value / 5) * 5) || 40);
+
+        const greenEnd = Math.min(10 / maxValue, 1);
+        const blueEnd = Math.min(20 / maxValue, 1);
+
+        colorSegments = [
+          [greenEnd, "#22c55e"],
+          [blueEnd, "#38bdf8"],
+          [1, "#ef4444"]
+        ];
+      } else if (metric === "mae") {
+        const allValues = modelsData.map((m) => m[metric] || 0);
+        const maxVal = Math.max(...allValues) || 1;
+        maxValue = Number((maxVal * 1.2).toFixed(3));
+        title = metric.toUpperCase();
+
+        colorSegments = [
+          [1 / 3, "#22c55e"],
+          [2 / 3, "#38bdf8"],
+          [1, "#ef4444"]
+        ];
+      }
+
+      const option = {
+        series: [
+          {
+            type: "gauge",
+            startAngle: 210,
+            endAngle: -30,
+            min: 0,
+            max: maxValue,
+            splitNumber: 4,
+            axisLine: { lineStyle: { width: 10, color: colorSegments } },
+            pointer: {
+              icon: "path://M12 2 L10 16 L12 14 L14 16 Z",
+              width: 6,
+              length: "70%",
+              offsetCenter: [0, "5%"]
+            },
+            axisTick: {
+              distance: -12,
+              length: 4,
+              lineStyle: { color: "#6b7280", width: 1 }
+            },
+            splitLine: {
+              distance: -14,
+              length: 6,
+              lineStyle: { color: "#9ca3af", width: 1 }
+            },
+            axisLabel: { color: "#9ca3af", distance: 12, fontSize: 10 },
+            title: { show: true, offsetCenter: [0, "55%"], color: "#9ca3af", fontSize: 12 },
+            detail: {
+              valueAnimation: true,
+              formatter: `{value}${unit}`,
+              color: "#e5e7eb",
+              fontSize: 18,
+              offsetCenter: [0, "20%"],
+              fontWeight: "bold"
+            },
+            data: [{ value: value, name: title }]
+          }
+        ]
+      };
+
+      gaugeChart.setOption(option);
+    }
+
+    const mapeValueEl = document.getElementById("mapeValue");
+    const maeValueEl = document.getElementById("maeValue");
+    const r2ValueEl = document.getElementById("r2Value");
+    const mapeIndicatorDot = document.getElementById("mapeIndicatorDot");
+    const mapeIndicatorText = document.getElementById("mapeIndicatorText");
+    const maeBar = document.getElementById("maeBar");
+    const r2Bar = document.getElementById("r2Bar");
+
+    function updateSidebarText() {
+      const idx = Number(modelSelect.value) || 0;
+      const model = modelsData[idx];
+
+      mapeValueEl.textContent = formatNumber(model.mape, 1);
+      maeValueEl.textContent = formatNumber(model.mae, 3);
+      r2ValueEl.textContent = formatNumber(model.r2, 3);
+
+      const band = getMAPEBand(model.mape);
+      const indicatorClass =
+        band.label === "Highly successful" ? "metric-dot--good"
+        : band.label === "Successful" ? "metric-dot--warn"
+        : "metric-dot--bad";
+
+      mapeIndicatorDot.className = `metric-dot ${indicatorClass}`;
+      mapeIndicatorText.textContent = band.label;
+
+      maeBar.style.width = `${getRelativeWidth("mae", model.mae)}%`;
+      r2Bar.style.width = `${getRelativeWidth("r2", model.r2, true)}%`;
+    }
+
+    modelSelect.addEventListener("change", () => {
+      updateGaugeChart();
+      updateSidebarText();
+    });
+
+    metricForGaugeSelect.addEventListener("change", () => {
+      updateGaugeChart();
+    });
+
+    metricForBarSelect.addEventListener("change", () => {
+      updateBarChart();
+    });
+
+    function initialRender() {
+      modelSelect.value = 0;
+      updateRadarChart();
+      updateBarChart();
+      updateGaugeChart();
+      updateSidebarText();
+    }
+
+    initialRender();
+
+    const lightbox = document.getElementById("imageLightbox");
+    const lightboxImg = document.getElementById("imageLightboxImg");
+    const lightboxClose = document.querySelector(".image-lightbox-close");
+
+    function openLightbox(src, alt) {
+      lightboxImg.src = src;
+      lightboxImg.alt = alt || "";
+      lightbox.classList.add("active");
+      lightbox.setAttribute("aria-hidden", "false");
+      document.body.classList.add("lightbox-open");
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove("active");
+      lightbox.setAttribute("aria-hidden", "true");
+      lightboxImg.src = "";
+      document.body.classList.remove("lightbox-open");
+    }
+
+    document.querySelectorAll(".shap-image-wrapper img").forEach((img) => {
+      img.addEventListener("click", () => openLightbox(img.src, img.alt));
+    });
+
+    lightbox.addEventListener("click", (event) => {
+      if (event.target === lightbox) closeLightbox();
+    });
+
+    lightboxClose.addEventListener("click", closeLightbox);
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && lightbox.classList.contains("active")) closeLightbox();
+    });
+
+    window.addEventListener("resize", () => {
+      gaugeChart.resize();
+      radarChart.resize();
+      barChart.resize();
+    });
+  </script>
+</body>
+</html>
