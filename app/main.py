@@ -12,6 +12,7 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 UPLOAD_DIR = BASE_DIR / "uploads"
 DOE_DATA_DIR = BASE_DIR / "doe_data"
 MAHR_DATA_DIR = BASE_DIR / "mahr_data"
+STL_OBJECTS_DIR = BASE_DIR / "stl_objects"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
 app = FastAPI(
@@ -36,6 +37,7 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 # Serve DOE table and profile data directly
 app.mount("/doe_data", StaticFiles(directory=DOE_DATA_DIR), name="doe_data")
 app.mount("/mahr_data", StaticFiles(directory=MAHR_DATA_DIR), name="mahr_data")
+app.mount("/stl_objects", StaticFiles(directory=STL_OBJECTS_DIR), name="stl_objects")
 
 # To serve uploaded files
 app.mount("/files", StaticFiles(directory=UPLOAD_DIR), name="files")

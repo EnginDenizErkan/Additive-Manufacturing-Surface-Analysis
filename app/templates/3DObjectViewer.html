@@ -156,14 +156,24 @@
     <!-- Sidebar -->
     <div id="sidebar" class="w-80 h-full bg-gray-800 shadow-xl p-4 overflow-y-auto space-y-4 flex flex-col">
       <h1 class="text-2xl font-bold text-white text-center pb-2 border-b border-gray-600">3D Viewer</h1>
+      <a href="/"
+         class="w-full inline-block text-center bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-md transition-colors">
+        Back to Main Page
+      </a>
 
       <!-- File Input Panel -->
       <div class="bg-gray-700 rounded-lg p-3">
         <h2 class="font-semibold text-lg mb-2">Load Model</h2>
-        <label for="modelOBJ"
-          class="w-full inline-block text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md cursor-pointer transition-colors">
-          Choose File
-        </label>
+        <div class="space-y-2">
+          <label for="modelOBJ"
+            class="w-full inline-block text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md cursor-pointer transition-colors">
+            Choose File
+          </label>
+          <button type="button" onclick="loadExampleModel()"
+            class="w-full inline-block text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-md transition-colors">
+            Load Example Model
+          </button>
+        </div>
         <input type="file" id="modelOBJ" class="hidden" onChange="runViewer();">
         <span id="fileName" class="text-xs text-gray-400 mt-2 block truncate">No file selected.</span>
       </div>
@@ -1056,6 +1066,28 @@
     }
 
     // --- File load ---
+    window.loadExampleModel = async function () {
+      const examplePath = "/stl_objects/Bunny.stl";
+      fileNameEl.textContent = "Bunny.stl";
+      loadingSpinner.style.display = "flex";
+
+      updateParameters();
+
+      try {
+        const response = await fetch(examplePath, { cache: "no-cache" });
+        if (!response.ok) {
+          throw new Error(`Example model load failed: ${response.status} ${response.statusText}`);
+        }
+
+        const contents = await response.arrayBuffer();
+        loadGeometry(contents, "stl");
+      } catch (err) {
+        console.error("Failed to load example model:", err);
+        fileNameEl.textContent = "Could not load Bunny.stl example model.";
+        loadingSpinner.style.display = "none";
+      }
+    };
+
     window.runViewer = function () {
       if (!fileInput.files[0]) return;
 

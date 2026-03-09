@@ -130,6 +130,23 @@
       white-space: nowrap;
     }
 
+    .home-link {
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(15, 23, 42, 0.75);
+      color: var(--text);
+      font-size: 11px;
+      padding: 6px 10px;
+      text-decoration: none;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .home-link:hover {
+      border-color: rgba(56, 189, 248, 0.6);
+      color: var(--accent);
+    }
+
     .theme-toggle:hover {
       border-color: rgba(56, 189, 248, 0.6);
     }
@@ -554,6 +571,42 @@
       pointer-events: none;
     }
 
+    .report-link {
+      font-size: 12px;
+      font-weight: 600;
+      color: #ecfdf5;
+      background: linear-gradient(to right, #16a34a, #22c55e);
+      border: 1px solid rgba(22, 163, 74, 0.85);
+      border-radius: 999px;
+      padding: 8px 14px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow:
+        0 0 0 1px rgba(6, 78, 59, 0.55),
+        0 10px 24px rgba(22, 163, 74, 0.35);
+      transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
+      white-space: nowrap;
+    }
+
+    .report-link:hover {
+      color: #f0fdf4;
+      filter: brightness(1.05);
+      transform: translateY(-1px);
+      box-shadow:
+        0 0 0 1px rgba(6, 78, 59, 0.55),
+        0 14px 28px rgba(22, 163, 74, 0.45);
+    }
+
+    .report-link.disabled {
+      opacity: 0.45;
+      pointer-events: none;
+      box-shadow: none;
+      transform: none;
+      filter: none;
+    }
+
     /* Graph area */
 
     .graph-card {
@@ -671,6 +724,11 @@
       color: var(--text);
     }
 
+    body.theme-light .home-link {
+      background: #ffffff;
+      color: var(--text);
+    }
+
     body.theme-light .panel,
     body.theme-light .detail-card,
     body.theme-light .graph-card,
@@ -751,6 +809,7 @@
       </div>
     </div>
     <div class="nav-right">
+      <a class="home-link" href="/">Back to Main Page</a>
       <div class="nav-pill">
         <span class="nav-pill-dot"></span>
         <span>Surface Profile Data</span>
@@ -928,7 +987,7 @@
           </div>
           <div style="flex: 0 0 auto;">
             <label>&nbsp;</label>
-            <a href="#" id="reportLink" class="subtle-link disabled" target="_blank" rel="noopener">
+            <a href="#" id="reportLink" class="report-link disabled" target="_blank" rel="noopener">
               <span>↗</span> Open object report
             </a>
           </div>
@@ -966,8 +1025,9 @@
   let filteredObjects = [];
   let selectedObject = null;
   let profileChart = null;
+  let angleAvailability = new Map();
 
-  // Candidate angles to probe for existing .txt files
+  // Candidate angles to probe for existing measurement/report files
   const candidateAngles = [0, 10, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170];
   const DOE_DATA_URL = "/doe_data/doe_table.json";
   const MAHR_BASE_URL = "/mahr_data";
@@ -1052,14 +1112,30 @@
 
     document.getElementById("angleSelect").addEventListener("change", () => {
       const angle = document.getElementById("angleSelect").value;
-      document.getElementById("btnLoadProfile").disabled = !angle || !selectedObject;
+      const angleInfo = angle ? angleAvailability.get(Number(angle)) : null;
+      const hasTxt = Boolean(angleInfo && angleInfo.hasTxt);
+      const reportOnly = Boolean(angleInfo && !angleInfo.hasTxt && angleInfo.hasPdf);
+
+      document.getElementById("btnLoadProfile").disabled = !angle || !selectedObject || !hasTxt;
       updateReportLink(angle);
+
+      if (reportOnly) {
+        setGraphStatus("Only project report is available for this angle.", "idle");
+      } else if (angle) {
+        setGraphStatus("Angle selected. Click 'Load Profile' to view the graph.", "idle");
+      }
     });
 
     document.getElementById("btnLoadProfile").addEventListener("click", () => {
       if (!selectedObject) return;
       const angle = document.getElementById("angleSelect").value;
       if (!angle) return;
+
+      const angleInfo = angleAvailability.get(Number(angle));
+      if (angleInfo && !angleInfo.hasTxt && angleInfo.hasPdf) {
+        setGraphStatus("Only project report is available for this angle.", "idle");
+        return;
+      }
       loadProfileTxt(selectedObject.ID, angle);
     });
   }
@@ -1290,6 +1366,7 @@
     document.getElementById("btnLoadProfile").disabled = true;
     document.getElementById("angleSelect").innerHTML =
       '<option value="">Select angle</option>';
+    angleAvailability = new Map();
     updateReportLink(null);
 
     if (profileChart) {
@@ -1303,34 +1380,37 @@
     angleSelect.disabled = true;
     setGraphStatus("Scanning available inclination angles…", "idle");
 
-    const foundAngles = [];
+    angleAvailability = new Map();
 
-    // We test a list of candidate angles by attempting to fetch the txt file.
+    // Probe both .txt (profile) and .pdf (project report) for each candidate angle.
     await Promise.all(
       candidateAngles.map(async (angle) => {
-        const path = `${MAHR_BASE_URL}/${objectId}/${objectId}-${angle}.txt`;
-        try {
-          const res = await fetch(path, { method: "GET" });
-          if (res.ok) {
-            foundAngles.push(angle);
-          }
-        } catch (err) {
-          // Ignore errors; file might not exist or directory listing may not be allowed.
+        const txtPath = `${MAHR_BASE_URL}/${objectId}/${objectId}-${angle}.txt`;
+        const pdfPath = `${MAHR_BASE_URL}/${objectId}/${objectId}-${angle}.pdf`;
+        const [hasTxt, hasPdf] = await Promise.all([
+          fileExists(txtPath),
+          fileExists(pdfPath)
+        ]);
+
+        if (hasTxt || hasPdf) {
+          angleAvailability.set(angle, { hasTxt, hasPdf });
         }
       })
     );
 
     angleSelect.innerHTML = '<option value="">Select angle</option>';
+    const foundAngles = Array.from(angleAvailability.keys()).sort((a, b) => a - b);
 
     if (foundAngles.length === 0) {
-      setGraphStatus("No profile files found for this object.", "error");
+      setGraphStatus("No profile or report files found for this object.", "error");
       angleSelect.disabled = true;
       document.getElementById("btnLoadProfile").disabled = true;
       updateReportLink(null);
       return;
     }
 
-    foundAngles.sort((a, b) => a - b).forEach((angle) => {
+    foundAngles.forEach((angle) => {
+      const info = angleAvailability.get(angle);
       const opt = document.createElement("option");
       opt.value = angle;
       opt.textContent = `${angle}°`;
@@ -1338,7 +1418,13 @@
     });
 
     angleSelect.disabled = false;
-    setGraphStatus("Angles detected. Select one and load the profile.", "idle");
+    const hasAnyTxt = foundAngles.some((angle) => angleAvailability.get(angle)?.hasTxt);
+    setGraphStatus(
+      hasAnyTxt
+        ? "Angles detected. Select one and load the profile."
+        : "Only project reports are available for this object.",
+      "idle"
+    );
   }
 
   function updateReportLink(angle) {
@@ -1350,9 +1436,31 @@
       return;
     }
 
+    const angleInfo = angleAvailability.get(Number(angle));
+    if (!angleInfo || !angleInfo.hasPdf) {
+      reportLink.href = "#";
+      reportLink.classList.add("disabled");
+      reportLink.setAttribute("aria-disabled", "true");
+      return;
+    }
+
     reportLink.href = `${MAHR_BASE_URL}/${selectedObject.ID}/${selectedObject.ID}-${angle}.pdf`;
     reportLink.classList.remove("disabled");
     reportLink.removeAttribute("aria-disabled");
+  }
+
+  async function fileExists(path) {
+    try {
+      let response = await fetch(path, { method: "HEAD" });
+      if (response.ok) return true;
+      if (response.status === 405) {
+        response = await fetch(path, { method: "GET" });
+        return response.ok;
+      }
+      return false;
+    } catch (err) {
+      return false;
+    }
   }
 
   async function loadProfileTxt(objectId, angle) {

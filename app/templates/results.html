@@ -124,6 +124,22 @@
       box-shadow: 0 0 14px rgba(56, 189, 248, 1);
     }
 
+    .home-link {
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text);
+      font-size: 0.75rem;
+      text-decoration: none;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      transition: border-color 0.12s ease, color 0.12s ease;
+    }
+
+    .home-link:hover {
+      border-color: rgba(56, 189, 248, 0.6);
+      color: var(--accent);
+    }
+
     /* MAIN LAYOUT */
     .grid {
       display: grid;
@@ -688,6 +704,7 @@
         </div>
       </div>
       <div class="header-right">
+        <a class="home-link" href="/">Back to Main Page</a>
         <div class="tag">
           <span class="tag-dot"></span>
           <span>Interactive dashboard</span>
@@ -713,7 +730,8 @@
             <label for="metricForGauge">Gauge metric</label>
             <select id="metricForGauge">
               <option value="mape">MAPE (%)</option>
-              <option value="mae">MAE</option>
+              <option value="mae">MAE (&micro;m)</option>
+              <option value="mse">MSE (&micro;m&sup2;)</option>
             </select>
           </div>
 
@@ -750,7 +768,7 @@
             <div class="metric-card">
               <div class="metric-card-label">MAE</div>
               <div class="metric-card-value">
-                <span id="maeValue">-</span>
+                <span id="maeValue">-</span><span>&nbsp;&micro;m</span>
               </div>
               <div class="metric-bar">
                 <div id="maeBar" class="metric-bar-fill"></div>
@@ -779,13 +797,18 @@
             <div class="section-header">
               <div class="section-title">
                 <h2>Comparative Metrics</h2>
-                <p>Radar + bar charts for up to six models.</p>
+                <p>Radar + bar charts for the selected model set.</p>
               </div>
               <div class="chip-row">
-                <div class="chip">MAPE, MAE, R²</div>
-                <div class="chip">Up to 6 models</div>
+                <div class="chip">MAPE, MAE, MSE, R²</div>
+                <div class="chip">2 models</div>
                 <div class="chip">Dynamic highlighting</div>
               </div>
+            </div>
+            <div class="footer-note" style="margin-bottom: 12px;">
+              <strong>Synthetic data source:</strong>
+              Synthetic samples in the hybrid model were generated using a
+              <strong>Conditional GAN (CGAN)</strong> and then combined with experimental measurements.
             </div>
 
             <div class="chart-row">
@@ -802,7 +825,8 @@
                   <span>Selected metric vs. models</span>
                   <select id="metricForBar" style="width:auto; padding:4px 8px; font-size:0.72rem;">
                     <option value="mape">MAPE (%)</option>
-                    <option value="mae">MAE</option>
+                    <option value="mae">MAE (&micro;m)</option>
+                    <option value="mse">MSE (&micro;m&sup2;)</option>
                     <option value="r2">R²</option>
                   </select>
                 </div>
@@ -817,7 +841,8 @@
                     <th>Model</th>
                     <th>Type</th>
                     <th>MAPE (%)</th>
-                    <th>MAE</th>
+                    <th>MAE (&micro;m)</th>
+                    <th>MSE (&micro;m&sup2;)</th>
                     <th>R²</th>
                     <th>Quality band (MAPE)</th>
                   </tr>
@@ -868,7 +893,7 @@
                     MAE = (1/n) Σ |y<sub>i</sub> − ŷ<sub>i</sub>|
                   </span>
                   <br />
-                  Gives the average absolute deviation in the same units as the target (e.g. µm).
+                  Gives the average absolute deviation in the same units as the target (e.g. &micro;m).
                   Easier to interpret physically: “On average, the model is off by X µm”.
                   Here we color-code MAE on the gauge relative to the best and worst models:
                   The lowest errors are green, intermediate are blue, and large errors are red.
@@ -886,6 +911,20 @@
                   Indicates how much of the variance in surface roughness is explained by the model (range 0–1).
                   Values close to <strong>1.0</strong> mean the model captures most variability across different process parameters.
                   In the radar and bar charts, higher R² corresponds to better overall explanatory power.
+                </div>
+              </div>
+            
+              <div class="metrics-def-card">
+                <div class="metrics-def-title">MSE</div>
+                <div class="metrics-def-main">Mean Squared Error</div>
+                <div class="metrics-def-body">
+                  <span class="formula">
+                    MSE = (1/n) Σ (y<sub>i</sub> − ŷ<sub>i</sub>)²
+                  </span>
+                  <br />
+                  Measures the average squared prediction error. Because errors are squared, larger mistakes are penalized more strongly.
+                  Lower MSE indicates better overall predictive accuracy and stability.
+                  Unit used on this page: <strong>&micro;m&sup2;</strong>.
                 </div>
               </div>
             </div>
@@ -916,7 +955,7 @@
                 </div>
                 <div class="shap-card-body">
                   <div class="shap-image-wrapper">
-                    <img src="/static/shap1.png" alt="SHAP summary plot (beeswarm) for Ra prediction" />
+                    <img src="/static/shap_1.png" alt="SHAP summary plot (beeswarm) for Ra prediction" />
                   </div>
                   <div class="shap-text">
                     <strong>What this shows:</strong> Each dot corresponds to one measured surface (one sample).
@@ -957,7 +996,7 @@
                 </div>
                 <div class="shap-card-body">
                   <div class="shap-image-wrapper">
-                    <img src="/static/shap3.png" alt="Global feature importance using mean absolute SHAP values" />
+                    <img src="/static/shap_3.png" alt="Global feature importance using mean absolute SHAP values" />
                   </div>
                   <div class="shap-text">
                     <strong>What this shows:</strong> Average absolute SHAP values summarise overall influence,
@@ -1013,12 +1052,8 @@
 
     */
     const modelsData = [
-      { name: "Random Forest",     type: "Tree-based ensemble",         mape: 13.7, mae: 2.257, r2: 0.849 },
-      { name: "Decision Tree",     type: "Single tree model",           mape: 12.4, mae: 2.123, r2: 0.847 },
-      { name: "Gradient Boosting", type: "Boosting ensemble",           mape: 13.8, mae: 2.254, r2: 0.839 },
-      { name: "XGBoost",           type: "Extreme gradient boosting",   mape: 13.9, mae: 2.273, r2: 0.835 },
-      { name: "CatBoost",          type: "Categorical boosting",        mape: 14.7, mae: 2.471, r2: 0.817 },
-      { name: "CGAN+MLP",          type: "Generative + MLP hybrid",     mape: 8.4,  mae: 1.616, r2: 0.900 }
+      { name: "MLP (Experimental Only)", type: "Experimental data only", mape: 14.19, mae: 2.200, mse: 10.737, r2: 0.844 },
+      { name: "MLP (Experimental + Synthetic)", type: "CGAN synthetic + real data", mape: 10.89, mae: 1.752, mse: 6.900, r2: 0.900 }
     ];
 
     function getMAPEBand(mape) {
@@ -1075,8 +1110,9 @@
         tr.innerHTML = `
           <td>${model.name}</td>
           <td>${model.type}</td>
-          <td>${formatNumber(model.mape, 1)}</td>
+          <td>${formatNumber(model.mape, 2)}</td>
           <td>${formatNumber(model.mae, 3)}</td>
+          <td>${formatNumber(model.mse, 3)}</td>
           <td>${formatNumber(model.r2, 3)}</td>
           <td>
             <span class="metric-chip ${band.className}">
@@ -1094,17 +1130,18 @@
     const barChart = echarts.init(document.getElementById("barChart"));
 
     function computeRadarData() {
-      const metrics = ["mape", "mae", "r2"];
-      const maxValues = {
-        mape: Math.max(...modelsData.map((m) => m.mape || 0)) || 1,
-        mae:  Math.max(...modelsData.map((m) => m.mae  || 0)) || 1,
-        r2: 1
+      const metrics = ["mape", "mae", "mse", "r2"];
+      const referenceMax = {
+        mape: 20,
+        mae: 5,
+        mse: 15
       };
 
       const indicator = metrics.map((metric) => {
         let name;
         if (metric === "mape") name = "MAPE";
         else if (metric === "mae") name = "MAE";
+        else if (metric === "mse") name = "MSE";
         else if (metric === "r2") name = "R²";
         return { name, max: 1 };
       });
@@ -1117,9 +1154,10 @@
             const clipped = Math.max(0, Math.min(raw, 1));
             return clipped;
           } else {
-            const max = maxValues[metric];
-            const norm = max > 0 ? raw / max : 0;
-            return 1 - Math.min(norm, 1);
+            // Lower-is-better metrics scaled against fixed engineering ranges.
+            const ref = referenceMax[metric] || 1;
+            const norm = Math.min(Math.max(raw / ref, 0), 1);
+            return 1 - norm;
           }
         })
       }));
@@ -1188,7 +1226,7 @@
       const labels = modelsData.map((m) => m.name);
       const values = modelsData.map((m) => m[metric]);
 
-      const metricNames = { mape: "MAPE (%)", mae: "MAE", r2: "R²" };
+      const metricNames = { mape: "MAPE (%)", mae: "MAE (&micro;m)", mse: "MSE (&micro;m&sup2;)", r2: "R²" };
 
       const option = {
         tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
@@ -1245,12 +1283,29 @@
       } else if (metric === "mae") {
         const allValues = modelsData.map((m) => m[metric] || 0);
         const maxVal = Math.max(...allValues) || 1;
-        maxValue = Number((maxVal * 1.2).toFixed(3));
+        maxValue = Number((Math.max(5, maxVal) * 1.2).toFixed(3));
         title = metric.toUpperCase();
+        unit = " \u00B5m";
+        const greenEnd = Math.min(2 / maxValue, 1);
+        const blueEnd = Math.min(5 / maxValue, 1);
 
         colorSegments = [
-          [1 / 3, "#22c55e"],
-          [2 / 3, "#38bdf8"],
+          [greenEnd, "#22c55e"],
+          [blueEnd, "#38bdf8"],
+          [1, "#ef4444"]
+        ];
+      } else if (metric === "mse") {
+        const allValues = modelsData.map((m) => m[metric] || 0);
+        const maxVal = Math.max(...allValues) || 1;
+        maxValue = Number((Math.max(15, maxVal) * 1.2).toFixed(3));
+        title = metric.toUpperCase();
+        unit = " \u00B5m\u00B2";
+        const greenEnd = Math.min(8 / maxValue, 1);
+        const blueEnd = Math.min(15 / maxValue, 1);
+
+        colorSegments = [
+          [greenEnd, "#22c55e"],
+          [blueEnd, "#38bdf8"],
           [1, "#ef4444"]
         ];
       }
@@ -1311,7 +1366,7 @@
       const idx = Number(modelSelect.value) || 0;
       const model = modelsData[idx];
 
-      mapeValueEl.textContent = formatNumber(model.mape, 1);
+      mapeValueEl.textContent = formatNumber(model.mape, 2);
       maeValueEl.textContent = formatNumber(model.mae, 3);
       r2ValueEl.textContent = formatNumber(model.r2, 3);
 
@@ -1392,3 +1447,4 @@
   </script>
 </body>
 </html>
+

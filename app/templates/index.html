@@ -142,7 +142,7 @@
 
     <div id="modal-info" class="modal-overlay">
         <div class="modal-box w-full max-w-md">
-            <p id="modal-message" class="mb-4 text-lg">This website presents a data-driven framework for predicting surface roughness (Ra) in FDM additive manufacturing before printing. After you upload an STL model, the system automatically measures surface inclination angles from the geometry, then combines these angles with selected printing parameters to estimate Ra. Results are visualized on the 3D mesh using a colormap, and the platform also provides access to the collected measurement dataset so users can compare predictions with real measurements and review outcomes across different settings to support informed parameter selection and reduce trial-and-error.
+            <p id="modal-message" class="mb-4 text-lg">This website presents an interactive, data-driven decision-support framework for predicting surface roughness (Ra) in fused filament fabrication (FFF) before printing. After a user uploads a 3D model, the system analyzes the mesh geometry, computes local surface inclination angles, and combines these geometric descriptors with selected printing parameters to estimate surface roughness across the part. The predicted Ra values are visualized directly on the 3D model through a colormap overlay, enabling users to identify regions that may exhibit poorer surface quality and to compare the effects of different parameter and orientation settings. In addition, the platform provides access to the experimental measurement dataset used in model development, allowing users to review observed roughness outcomes and support more informed, less trial-and-error-based process planning.
 </p>
             <button
                 class="modal-close-btn px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition transform hover:scale-105">
@@ -175,7 +175,10 @@
                         class="w-32 h-32 rounded-full mb-3 object-cover shadow-lg border-2 border-white">
                     <h3 class="text-xl font-semibold text-gray-800">ELİF SÜRER</h3>
                     <p class="text-gray-500 mb-3">Assoc. Prof.</p>
-                    <a href="https://avesis.metu.edu.tr/elifs" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/avesis-%230077B5.svg?&style=for-the-badge&logo=microsoft-academic&logoColor=white" alt="Avesis"></a>
+                    <div class="flex space-x-2">
+                        <a href="https://www.linkedin.com/in/elifsurer/" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/linkedin-%230077B5.svg?&style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"></a>
+                        <a href="https://avesis.metu.edu.tr/elifs" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/avesis-%230077B5.svg?&style=for-the-badge&logo=microsoft-academic&logoColor=white" alt="Avesis"></a>
+                    </div>
                 </div>
 
                 <div class="flex flex-col items-center">
@@ -183,7 +186,10 @@
                         class="w-32 h-32 rounded-full mb-3 object-cover shadow-lg border-2 border-white">
                     <h3 class="text-xl font-semibold text-gray-800">ULAŞ YAMAN</h3>
                     <p class="text-gray-500 mb-3">Prof. Dr.</p>
-                    <a href="https://avesis.metu.edu.tr/uyaman" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/avesis-%230077B5.svg?&style=for-the-badge&logo=microsoft-academic&logoColor=white" alt="Avesis"></a>
+                    <div class="flex space-x-2">
+                        <a href="https://www.linkedin.com/in/ulasyaman/" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/linkedin-%230077B5.svg?&style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"></a>
+                        <a href="https://avesis.metu.edu.tr/uyaman" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/avesis-%230077B5.svg?&style=for-the-badge&logo=microsoft-academic&logoColor=white" alt="Avesis"></a>
+                    </div>
                 </div>
             </div>
 
@@ -213,7 +219,7 @@
         <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mt-6 button-group">
             <button id="btn-load"
                 class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition shadow-lg transform hover:scale-105">
-                Load
+                Roughness Prediction
             </button>
             
             <button id="btn-prev"
