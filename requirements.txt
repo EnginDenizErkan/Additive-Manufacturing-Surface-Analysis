@@ -3,3 +3,11 @@ uvicorn
 python-multipart
 jinja2
 aiofiles
+matplotlib
+numpy
+optuna
+pandas
+scikit-learn
+scipy
+shap
+tensorflow
