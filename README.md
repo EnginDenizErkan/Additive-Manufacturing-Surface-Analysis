@@ -31,7 +31,7 @@ Please note that the application may occasionally take a few seconds to open. In
 
 ## Dataset
 
-- `dataset/surface_roughness_data.csv`: Dataset used in the notebook
+- `dataset/mahr_data.csv`: Dataset used in the notebook
 
 ## Reproducibility and Environment Setup
 
