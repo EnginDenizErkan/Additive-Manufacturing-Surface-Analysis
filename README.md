@@ -25,13 +25,13 @@ Please note that the application may occasionally take a few seconds to open. In
 
 - `app/`: Source code for the web application
 - `Data_Analysis/`: Notebooks used for the computational analysis
-- `dataset/`: Used Dataset
+- `dataset/`: Used dataset
 - `requirements.txt`: Python dependencies for the web application
 - `environment.yml`: Conda environment file for reproducible notebook execution
 
 ## Dataset
 
-- `dataset/mahr_data.csv`: dataset used in the notebook
+- `dataset/surface_roughness_data.csv`: Dataset used in the notebook
 
 ## Reproducibility and Environment Setup
 
