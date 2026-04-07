@@ -29,12 +29,9 @@ Please note that the application may occasionally take a few seconds to open. In
 - `requirements.txt`: Python dependencies for the web application
 - `environment.yml`: Conda environment file for reproducible notebook execution
 
-## Data Analysis Assets
+## Dataset
 
-The `Data_Analysis/` folder contains the files required to reproduce the computational analysis reported in the manuscript:
-
-- `Data_Analysis/Surface_Roughness_Prediction.ipynb`: main notebook containing the analysis, model training, and prediction workflow
-- `Data_Analysis/mahr_data.csv`: dataset used in the notebook
+- `dataset/mahr_data.csv`: dataset used in the notebook
 
 ## Reproducibility and Environment Setup
 
